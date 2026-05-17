@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import type { Product, FavoriteItem } from '@/types'
 import { formatPrice } from '@/lib/pricing'
@@ -17,6 +17,15 @@ type Props = {
 
 export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining, startExpanded }: Props) {
   const [expanded, setExpanded] = useState(startExpanded ?? false)
+  const detailRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (expanded && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 320) // wait for animation to finish
+    }
+  }, [expanded])
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const startX = useRef(0)
@@ -115,6 +124,7 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
 
         {/* Expandable detail panel */}
         <div
+          ref={detailRef}
           className="overflow-y-auto transition-all duration-300 ease-in-out"
           style={{ maxHeight: expanded ? '60vh' : '0px' }}
         >
