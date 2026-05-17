@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { prisma } from '@/lib/prisma'
 import type { CartItem } from '@/types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -17,14 +16,13 @@ export async function POST(req: NextRequest) {
       price_data: {
         currency: 'usd',
         product_data: {
-          name: `${item.product.name}${item.pieceCount > 1 ? ` (${item.pieceCount}-piece set)` : ''}`,
+          name: item.product.name,
           images: [item.product.imageUrl],
           metadata: {
             productId: item.productId,
-            pieceCount: String(item.pieceCount),
           },
         },
-        unit_amount: Math.round(item.price * 100), // Stripe expects cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }))
@@ -33,6 +31,9 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop`,
       metadata: {
@@ -40,7 +41,6 @@ export async function POST(req: NextRequest) {
           items.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
-            pieceCount: i.pieceCount,
             price: i.price,
           }))
         ),
