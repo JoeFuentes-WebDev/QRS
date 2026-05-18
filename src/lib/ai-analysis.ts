@@ -37,7 +37,12 @@ Respond ONLY with a JSON object (no markdown, no backticks) with these fields:
   "category": "one of exactly: mug, bowl, vase, plate, set, other (always lowercase singular)",
   "pieceCount": number of individual pottery pieces visible in the image,
   "description": "1-2 sentence description of the piece, focusing on glaze, texture, shape",
-  "tags": ["array", "of", "descriptive", "tags", "like", "terracotta", "glazed", "stoneware"],
+  "tags": [
+    "dominant color (e.g. terracotta, blue, white, black, brown, natural, teal, speckled)",
+    "texture (e.g. smooth, rough, matte, glossy, speckled, crackled, textured)",
+    "material (e.g. stoneware, earthenware, porcelain, ceramic)",
+    "any other relevant descriptive tags"
+  ],
   "aiLabel": "brief raw description of what you see"
 }`,
           },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
@@ -14,6 +14,9 @@ export default function SplashPage() {
   const [images, setImages] = useState<HeroImage[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
   const [pills, setPills] = useState<string[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -24,8 +27,7 @@ export default function SplashPage() {
     fetch('/api/categories').then(r => r.json()).then((data) => {
       const cats = (data.categories ?? []) as string[]
       const tags = (data.popularTags ?? []) as string[]
-      const combined = [...new Set([...cats, ...tags])]
-      setPills(combined)
+      setPills([...new Set([...cats, ...tags])])
     })
   }, [])
 
@@ -37,10 +39,20 @@ export default function SplashPage() {
     return () => clearInterval(interval)
   }, [images.length])
 
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [searchOpen])
+
   const current = images[currentIdx]
 
   const handlePill = (value: string) => {
     router.push(`/shop?q=${encodeURIComponent(value)}`)
+  }
+
+  const handleSearch = () => {
+    router.push(`/shop?q=${encodeURIComponent(query)}`)
   }
 
   return (
@@ -63,7 +75,8 @@ export default function SplashPage() {
 
       <div className="absolute inset-0 bg-black/40" />
 
-      <div className="relative z-10 flex flex-col items-center gap-8 px-6 w-full max-w-lg text-center">
+      <div className="relative z-10 flex flex-col items-center gap-6 px-6 w-full max-w-lg text-center">
+        {/* Title */}
         <div className="bg-black/30 backdrop-blur-sm rounded-3xl px-8 py-6">
           <h1 className="text-4xl font-black text-white tracking-tight">
             Laura&apos;s Pots
@@ -73,8 +86,9 @@ export default function SplashPage() {
           </p>
         </div>
 
+        {/* Pills + search icon */}
         <div className="flex flex-wrap gap-3 justify-center">
-          {/* Show All — always first */}
+          {/* Show All */}
           <button
             onClick={() => handlePill('')}
             className="bg-white/30 backdrop-blur-sm border border-white/50 text-white font-bold px-5 py-2.5 rounded-full hover:bg-white/40 transition-all text-sm"
@@ -82,7 +96,7 @@ export default function SplashPage() {
             Show All
           </button>
 
-          {/* Dynamic pills from DB — raw values, capitalize for display */}
+          {/* Dynamic pills */}
           {pills.map((pill) => (
             <button
               key={pill}
@@ -93,13 +107,48 @@ export default function SplashPage() {
             </button>
           ))}
 
-          {pills.length === 0 && (
-            <p className="text-white/40 text-sm">Loading...</p>
-          )}
+          {/* Search icon pill */}
+          <button
+            onClick={() => setSearchOpen(o => !o)}
+            className={`backdrop-blur-sm border text-white font-medium px-4 py-2.5 rounded-full transition-all text-sm ${
+              searchOpen
+                ? 'bg-white/40 border-white/60'
+                : 'bg-white/20 border-white/30 hover:bg-white/30'
+            }`}
+            aria-label="Search"
+          >
+            🔍
+          </button>
         </div>
 
+        {/* Search bar — slides in when open */}
+        <div
+          className="w-full overflow-hidden transition-all duration-300"
+          style={{ maxHeight: searchOpen ? '80px' : '0px', opacity: searchOpen ? 1 : 0 }}
+        >
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder="Search anything..."
+              className="flex-1 rounded-2xl bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white placeholder-white/50 px-5 py-3 focus:outline-none focus:border-white/60"
+            />
+            <button
+              onClick={handleSearch}
+              disabled={!query.trim()}
+              className="bg-white text-stone-900 font-bold px-5 py-3 rounded-2xl hover:bg-stone-100 transition-colors disabled:opacity-50"
+            >
+              Go
+            </button>
+          </div>
+        </div>
+
+        {/* Dot indicators */}
         {images.length > 1 && (
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2">
             {images.map((_, i) => (
               <button
                 key={i}

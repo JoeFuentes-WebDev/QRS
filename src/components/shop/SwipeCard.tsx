@@ -48,10 +48,8 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
   const handleDragEnd = () => {
     setIsDragging(false)
     if (dragX > threshold) {
-      setExpanded(false)
       onSwipeRight({ product })
     } else if (dragX < -threshold) {
-      setExpanded(false)
       onSwipeLeft()
     } else if (!didDrag.current) {
       setExpanded((e) => !e)
@@ -81,7 +79,7 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
     >
       <div className="bg-white overflow-hidden">
         {/* Full-bleed photo */}
-        <div className="relative w-full h-[420px]">
+        <div key={product.id} className="relative w-full h-[420px] animate-unblur">
           <Image
             src={product.imageUrl}
             alt={product.name}
@@ -131,14 +129,6 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
           style={{ maxHeight: expanded ? '60vh' : '0px' }}
         >
           <div className="px-5 pt-4 pb-5 space-y-4">
-            {/* Collapse handle */}
-            <button
-              onClick={(e) => { e.stopPropagation(); setExpanded(false) }}
-              className="w-full flex justify-center pb-2"
-              aria-label="Collapse"
-            >
-              <div className="w-10 h-1 bg-stone-300 rounded-full" />
-            </button>
             {product.tags && product.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {product.tags.map((tag) => (

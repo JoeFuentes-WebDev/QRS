@@ -18,7 +18,7 @@ export async function GET() {
       return acc
     }, {})
     const popularTags = Object.entries(tagCounts)
-      .filter(([, count]) => count >= 2)
+      .filter(([, count]) => count >= 1)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 4)
       .map(([tag]) => tag)
