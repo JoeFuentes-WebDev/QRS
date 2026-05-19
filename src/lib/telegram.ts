@@ -8,6 +8,33 @@ export async function sendTelegramMessage(chatId: string, text: string): Promise
   })
 }
 
+export async function sendTelegramMessageWithButtons(
+  chatId: string,
+  text: string,
+  buttons: { text: string; callback_data: string }[]
+): Promise<void> {
+  await fetch(`${TELEGRAM_API}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [buttons.map(b => ({ text: b.text, callback_data: b.callback_data }))],
+      },
+    }),
+  })
+}
+
+export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+  await fetch(`${TELEGRAM_API}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: callbackQueryId, text }),
+  })
+}
+
 export async function sendTelegramPhoto(chatId: string, photoUrl: string, caption: string): Promise<void> {
   await fetch(`${TELEGRAM_API}/sendPhoto`, {
     method: 'POST',

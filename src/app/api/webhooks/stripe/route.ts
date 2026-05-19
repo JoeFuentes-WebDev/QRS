@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { sendTelegramMessage } from '@/lib/telegram'
+import { sendTelegramMessageWithButtons } from '@/lib/telegram'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -56,10 +56,14 @@ export async function POST(req: NextRequest) {
       }
 
       const productNames = order.items.map(i => i.product.name).join(', ')
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+      const yesUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=yes`
+      const noUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=no`
+
       // Text Laura via Telegram
       await sendTelegramMessage(
         process.env.LAURA_CHAT_ID!,
-        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\nReply <b>YES</b> to ship or <b>NO</b> if unavailable.`
+        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\n<a href="${yesUrl}">✓ Yes, I'll ship it</a>\n<a href="${noUrl}">✕ No, unavailable</a>`
       )
 
     } catch (error) {
