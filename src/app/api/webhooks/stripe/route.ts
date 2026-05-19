@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { Resend } from 'resend'
+import { sendTelegramMessage } from '@/lib/telegram'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
     console.error('Webhook signature verification failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
-  
+
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
 
@@ -61,30 +60,11 @@ export async function POST(req: NextRequest) {
       const yesUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=yes`
       const noUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=no`
 
-      // Email Laura
-      await resend.emails.send({
-        from: 'orders@lauras-pots.com',
-        to: process.env.LAURA_EMAIL!,
-        subject: `New order: ${productNames}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-            <h2 style="color: #1c1917;">New Order 🏺</h2>
-            <p><strong>Item:</strong> ${productNames}</p>
-            <p><strong>Customer:</strong> ${customerName}, ${customerCity} ${customerState}</p>
-            <p><strong>Order total:</strong> $${order.total.toFixed(2)}</p>
-            <p style="margin-top: 32px;">Can you ship this piece?</p>
-            <div style="margin-top: 16px; display: flex; gap: 12px;">
-              <a href="${yesUrl}" style="background: #1c1917; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-right: 12px;">
-                ✓ Yes, I'll ship it
-              </a>
-              <a href="${noUrl}" style="background: #f5f5f4; color: #57534e; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                ✕ No, it's unavailable
-              </a>
-            </div>
-            <p style="margin-top: 32px; color: #a8a29e; font-size: 12px;">Order ID: ${order.id}</p>
-          </div>
-        `,
-      })
+      // Text Laura via Telegram
+      await sendTelegramMessage(
+        process.env.LAURA_CHAT_ID!,
+        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\n<a href="${yesUrl}">✓ Yes, I'll ship it</a>\n<a href="${noUrl}">✕ No, unavailable</a>`
+      )
 
     } catch (error) {
       console.error('Order processing error:', error)
