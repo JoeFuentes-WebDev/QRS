@@ -60,6 +60,8 @@ export async function GET(req: NextRequest) {
           state: process.env.LAURA_ADDRESS_STATE!,
           zip: process.env.LAURA_ADDRESS_ZIP!,
           country: 'US',
+          email: process.env.LAURA_ADDRESS_EMAIL!,
+          phone: process.env.LAURA_ADDRESS_PHONE!,
         },
         addressTo: {
           name: session.customer_details?.name ?? 'Customer',
