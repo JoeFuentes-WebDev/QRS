@@ -49,6 +49,8 @@ async function handleAction(chatId: string, action: string, orderId: string) {
           state: process.env.LAURA_ADDRESS_STATE!,
           zip: process.env.LAURA_ADDRESS_ZIP!,
           country: 'US',
+          email: 'job@joefuentes.com',
+          phone: '+14157944104',
         },
         addressTo: {
           name: session.customer_details?.name ?? 'Customer',
