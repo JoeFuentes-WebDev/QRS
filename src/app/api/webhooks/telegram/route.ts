@@ -25,7 +25,7 @@ async function handleAction(chatId: string, action: string, orderId: string) {
 
   if (action === 'YES') {
     await sendTelegramMessage(chatId, '⏳ Generating your shipping label...')
-    
+
     try {
       const Stripe = (await import('stripe')).default
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -82,6 +82,7 @@ async function handleAction(chatId: string, action: string, orderId: string) {
         async: false,
       })
 
+      console.log('Shippo transaction:', JSON.stringify(transaction, null, 2))
       const tx = transaction as { qrCodeUrl?: string; labelUrl?: string }
       const qrUrl = tx.qrCodeUrl ?? tx.labelUrl ?? ''
 
