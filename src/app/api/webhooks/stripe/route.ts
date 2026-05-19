@@ -56,14 +56,15 @@ export async function POST(req: NextRequest) {
       }
 
       const productNames = order.items.map(i => i.product.name).join(', ')
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-      const yesUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=yes`
-      const noUrl = `${appUrl}/api/fulfill?orderId=${order.id}&action=no`
-
       // Text Laura via Telegram
-      await sendTelegramMessage(
+      // Text Laura via Telegram with YES/NO buttons
+      await sendTelegramMessageWithButtons(
         process.env.LAURA_CHAT_ID!,
-        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\n<a href="${yesUrl}">✓ Yes, I'll ship it</a>\n<a href="${noUrl}">✕ No, unavailable</a>`
+        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\nCan you ship this?`,
+        [
+          { text: '✓ Yes, ship it', callback_data: `YES:${order.id}` },
+          { text: '✕ Not available', callback_data: `NO:${order.id}` },
+        ]
       )
 
     } catch (error) {
