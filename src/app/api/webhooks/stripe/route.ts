@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { sendTelegramMessageWithButtons } from '@/lib/telegram'
+import { sendTelegramMessageWithButtons, sendTelegramPhoto } from '@/lib/telegram'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -58,6 +58,17 @@ export async function POST(req: NextRequest) {
       const productNames = order.items.map(i => i.product.name).join(', ')
       // Text Laura via Telegram
       // Text Laura via Telegram with YES/NO buttons
+      // Send product photo first
+      const firstItem = order.items[0]
+      if (firstItem?.product?.imageUrl) {
+        await sendTelegramPhoto(
+          process.env.LAURA_CHAT_ID!,
+          firstItem.product.imageUrl,
+          firstItem.product.name
+        )
+      }
+
+      // Then send the order message with YES/NO buttons
       await sendTelegramMessageWithButtons(
         process.env.LAURA_CHAT_ID!,
         `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\nCan you ship this?`,
