@@ -23,63 +23,89 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
     if (expanded && detailRef.current) {
       setTimeout(() => {
         detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 320) // wait for animation to finish
+      }, 320)
     }
   }, [expanded])
+
   const [dragX, setDragX] = useState(0)
+  const [dragY, setDragY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const startX = useRef(0)
+  const startY = useRef(0)
   const didDrag = useRef(false)
   const threshold = 100
+  const thresholdY = 80
 
-  const handleDragStart = (clientX: number) => {
+  const handleDragStart = (clientX: number, clientY: number) => {
     startX.current = clientX
+    startY.current = clientY
     setIsDragging(true)
     didDrag.current = false
   }
 
-  const handleDragMove = (clientX: number) => {
+  const handleDragMove = (clientX: number, clientY: number) => {
     if (!isDragging) return
-    const delta = clientX - startX.current
-    if (Math.abs(delta) > 5) didDrag.current = true
-    setDragX(delta)
+    const deltaX = clientX - startX.current
+    const deltaY = clientY - startY.current
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) didDrag.current = true
+    setDragX(deltaX)
+    setDragY(deltaY)
   }
 
   const handleDragEnd = () => {
     setIsDragging(false)
-    if (dragX > threshold) {
+    const absX = Math.abs(dragX)
+    const absY = Math.abs(dragY)
+
+    // Determine dominant direction
+    if (absY > absX && dragY < -thresholdY) {
+      // Swipe UP → pin/save
+      setExpanded(false)
+      onPin({ product })
+    } else if (dragX > threshold) {
+      // Swipe RIGHT → buy
+      setExpanded(false)
       onSwipeRight({ product })
     } else if (dragX < -threshold) {
+      // Swipe LEFT → skip
+      setExpanded(false)
       onSwipeLeft()
     } else if (!didDrag.current) {
+      // Tap → expand/collapse
       setExpanded((e) => !e)
     }
     setDragX(0)
+    setDragY(0)
   }
 
   const rotation = dragX / 15
   const likeOpacity = Math.min(dragX / threshold, 1)
   const nopeOpacity = Math.min(-dragX / threshold, 1)
+  const saveOpacity = Math.min(-dragY / thresholdY, 1)
 
   return (
     <div
       className="relative select-none touch-none w-full"
       style={{
-        transform: `translateX(${dragX}px) rotate(${rotation}deg)`,
+        transform: `translateX(${dragX}px) translateY(${Math.min(0, dragY)}px) rotate(${rotation}deg)`,
         transition: isDragging ? 'none' : 'transform 0.3s ease',
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
-      onMouseDown={(e) => handleDragStart(e.clientX)}
-      onMouseMove={(e) => handleDragMove(e.clientX)}
+      onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
+      onMouseMove={(e) => handleDragMove(e.clientX, e.clientY)}
       onMouseUp={handleDragEnd}
       onMouseLeave={() => { if (isDragging) handleDragEnd() }}
-      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-      onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+      onTouchStart={(e) => handleDragStart(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchMove={(e) => handleDragMove(e.touches[0].clientX, e.touches[0].clientY)}
       onTouchEnd={handleDragEnd}
     >
-      <div className="bg-white overflow-hidden">
+      <div className="overflow-hidden">
         {/* Full-bleed photo */}
-        <div key={product.id} className="relative w-full h-[420px] animate-unblur">
+        <div
+          key={product.id}
+          className="relative w-full h-[420px] animate-unblur cursor-pointer"
+          onClick={() => setExpanded(e => !e)}
+        >
           <Image
             src={product.imageUrl}
             alt={product.name}
@@ -90,15 +116,19 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-          {/* Like / Nope overlays */}
+          {/* Swipe overlays */}
           <div
             className="absolute top-8 left-6 border-4 border-green-400 text-green-400 font-black text-3xl px-3 py-1 rounded-lg rotate-[-15deg]"
             style={{ opacity: likeOpacity }}
-          >LIKE</div>
+          >BUY</div>
           <div
             className="absolute top-8 right-6 border-4 border-red-400 text-red-400 font-black text-3xl px-3 py-1 rounded-lg rotate-[15deg]"
             style={{ opacity: nopeOpacity }}
           >SKIP</div>
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border-4 border-amber-400 text-amber-400 font-black text-2xl px-3 py-1 rounded-lg"
+            style={{ opacity: saveOpacity }}
+          >SAVE 📌</div>
 
           {remaining > 1 && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 text-white text-xs px-3 py-1 rounded-full">
@@ -112,15 +142,26 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
           </div>
         </div>
 
-        {/* Tap hint */}
-        <div
-          className="text-center py-1.5 bg-white border-t border-stone-100 cursor-pointer"
-          onClick={() => setExpanded(e => !e)}
-        >
-          <p className="text-stone-400 text-xs">
-            {expanded ? 'tap to collapse' : 'tap to expand'}
-          </p>
-        </div>
+        {/* Action buttons — only visible when collapsed */}
+        {!expanded && (
+          <div className="flex items-center gap-3 justify-center py-4">
+            <button
+              onClick={(e) => { e.stopPropagation(); onSwipeLeft() }}
+              className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm border-2 border-red-200 text-red-400 text-xl flex items-center justify-center hover:scale-110 hover:border-red-400 transition-all shadow-md"
+              aria-label="Skip"
+            >✕</button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onSwipeRight({ product }) }}
+              className="w-20 h-20 rounded-full bg-white/80 backdrop-blur-sm border-2 border-green-200 text-green-500 text-3xl flex items-center justify-center hover:scale-110 hover:border-green-400 transition-all shadow-md"
+              aria-label="Add to cart"
+            >♥</button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onPin({ product }) }}
+              className="w-14 h-14 rounded-full bg-white/80 backdrop-blur-sm border-2 border-amber-200 text-amber-500 text-xl flex items-center justify-center hover:scale-110 hover:border-amber-400 transition-all shadow-md"
+              aria-label="Save for later"
+            >📌</button>
+          </div>
+        )}
 
         {/* Expandable detail panel */}
         <div
@@ -128,7 +169,16 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
           className="overflow-y-auto transition-all duration-300 ease-in-out"
           style={{ maxHeight: expanded ? '60vh' : '0px' }}
         >
-          <div className="px-5 pt-4 pb-5 space-y-4">
+          <div className="px-5 pt-2 pb-5 space-y-4 bg-white/90 backdrop-blur-sm">
+            {/* Collapse handle */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(false) }}
+              className="w-full flex justify-center pb-1"
+              aria-label="Collapse"
+            >
+              <div className="w-10 h-1 bg-stone-300 rounded-full" />
+            </button>
+
             {product.tags && product.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {product.tags.map((tag) => (
@@ -150,21 +200,21 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
               )}
             </div>
 
-            {/* Action buttons in expanded view */}
-            <div className="flex items-center gap-3 justify-center pt-1">
+            {/* Action buttons at bottom of expanded panel */}
+            <div className="flex items-center gap-3 justify-center pt-2 pb-2">
               <button
                 onClick={(e) => { e.stopPropagation(); onSwipeLeft() }}
-                className="w-14 h-14 rounded-full bg-stone-50 border-2 border-red-200 text-red-400 text-xl flex items-center justify-center hover:scale-110 hover:border-red-400 transition-all"
+                className="w-14 h-14 rounded-full bg-white border-2 border-red-200 text-red-400 text-xl flex items-center justify-center hover:scale-110 hover:border-red-400 transition-all shadow-md"
                 aria-label="Skip"
               >✕</button>
               <button
                 onClick={(e) => { e.stopPropagation(); onSwipeRight({ product }) }}
-                className="w-20 h-20 rounded-full bg-stone-50 border-2 border-green-200 text-green-500 text-3xl flex items-center justify-center hover:scale-110 hover:border-green-400 transition-all"
+                className="w-20 h-20 rounded-full bg-white border-2 border-green-200 text-green-500 text-3xl flex items-center justify-center hover:scale-110 hover:border-green-400 transition-all shadow-md"
                 aria-label="Add to cart"
               >♥</button>
               <button
                 onClick={(e) => { e.stopPropagation(); onPin({ product }) }}
-                className="w-14 h-14 rounded-full bg-stone-50 border-2 border-amber-200 text-amber-500 text-xl flex items-center justify-center hover:scale-110 hover:border-amber-400 transition-all"
+                className="w-14 h-14 rounded-full bg-white border-2 border-amber-200 text-amber-500 text-xl flex items-center justify-center hover:scale-110 hover:border-amber-400 transition-all shadow-md"
                 aria-label="Save for later"
               >📌</button>
             </div>

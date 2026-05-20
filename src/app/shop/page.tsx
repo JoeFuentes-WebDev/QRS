@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { SwipeCard } from '@/components/shop/SwipeCard'
+import { OnboardingScreen, useOnboarding } from '@/components/shop/Onboardingscreen'
 import { FavoritesSummary } from '@/components/shop/FavoritesSummary'
 import type { Product, FavoriteItem } from '@/types'
 
@@ -17,19 +18,25 @@ export default function ShopPage() {
   const [queue, setQueue] = useState<Product[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [favorites, setFavorites] = useState<FavoriteItem[]>([])
-  const [loading, setLoading] = useState(false)
+  
   const [reviewProduct, setReviewProduct] = useState<Product | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [pills, setPills] = useState<string[]>([])
   const [activeFilter, setActiveFilter] = useState<string>('')
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null)
   const didAutoSearch = useRef(false)
+  const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding()
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const currentProduct = reviewProduct ?? queue[currentIndex]
   const cartItems = favorites.filter((f) => !f.pinned)
 
   useEffect(() => {
+    fetch('/api/hero').then(r => r.json()).then((data) => {
+      if (Array.isArray(data) && data.length > 0) setHeroImageUrl(data[0].imageUrl)
+    })
+
     fetch('/api/categories').then(r => r.json()).then((data) => {
       const cats = (data.categories ?? []) as string[]
       const tags = (data.popularTags ?? []) as string[]
@@ -42,7 +49,6 @@ export default function ShopPage() {
   }, [searchOpen])
 
   const handleSearch = useCallback(async (query: string) => {
-    setLoading(true)
     setSearchOpen(false)
     setActiveFilter(query)
     try {
@@ -55,9 +61,7 @@ export default function ShopPage() {
       if (data.length > 0) setPhase('swipe')
     } catch (err) {
       console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    } 
   }, [])
 
   const advanceCard = useCallback(() => {
@@ -241,35 +245,26 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Action bar */}
-          <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-stone-100">
-            <button
-              onClick={handleSkip}
-              className="flex items-center gap-1.5 text-red-400 font-semibold text-sm hover:text-red-500 transition-colors"
-            >
-              <span className="text-base">«</span> skip
-            </button>
-            <button
-              onClick={() => handlePin({ product: currentProduct })}
-              className="relative flex items-center gap-1.5 text-stone-500 font-medium text-sm hover:text-amber-500 transition-colors"
-            >
-              <span className="text-lg">📌</span>
-              {favorites.filter(f => f.pinned).length > 0 && (
-                <span className="absolute -top-2 -right-3 bg-amber-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                  {favorites.filter(f => f.pinned).length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => handleSwipeRight({ product: currentProduct })}
-              className="flex items-center gap-1.5 text-green-500 font-semibold text-sm hover:text-green-600 transition-colors"
-            >
-              buy <span className="text-base">»</span>
-            </button>
-          </div>
-
           {/* Card */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col relative">
+            {showOnboarding && (
+              <OnboardingScreen onDismiss={dismissOnboarding} />
+            )}
+            {/* Background */}
+            {heroImageUrl ? (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${heroImageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(20px) brightness(0.85) saturate(0.6)',
+                  transform: 'scale(1.1)',
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-stone-100 pointer-events-none" />
+            )}
             <SwipeCard
               product={currentProduct}
               onSwipeRight={handleSwipeRight}
