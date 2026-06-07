@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const bytes = await file.arrayBuffer()
   const buffer = Buffer.from(bytes)
-  const upload = await uploadProductImage(buffer, `hero-${Date.now()}-${file.name}`)
+  const upload = await uploadProductImage(seller.id, buffer, `hero-${Date.now()}-${file.name}`)
 
   const count = await prisma.heroImage.count({ where: { sellerId: seller.id } })
   const image = await prisma.heroImage.create({

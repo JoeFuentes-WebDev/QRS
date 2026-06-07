@@ -120,6 +120,9 @@ If a task is ambiguous, stop and ask. Do not assume and proceed.
 - Do not create new API routes for operations Prisma can handle in a Server Action or Server Component.
 - Do not run `git commit` without explicit approval.
 - Do not run `git push` without explicit approval.
+- Do not use the GitHub API to create, edit, or delete files.
+- All file changes must be made to the local filesystem only.
+- Never write directly to the remote repository.
 ---
 
 *QRS — .cursorrules — June 2026*

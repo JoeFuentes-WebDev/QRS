@@ -1,12 +1,35 @@
-export default function DashboardPage() {
+import { getCurrentSeller } from '@/lib/seller'
+import { prisma } from '@/lib/prisma'
+import { DashboardShell } from '@/components/dashboard/dashboard-shell'
+import type { Product } from '@/types'
+
+export default async function DashboardPage() {
+  const seller = await getCurrentSeller()
+  if (!seller) return null
+
+  const [products, heroImages] = await Promise.all([
+    prisma.product.findMany({
+      where: { sellerId: seller.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.heroImage.findMany({
+      where: { sellerId: seller.id, active: true },
+      orderBy: { order: 'asc' },
+    }),
+  ])
+
+  const serializedProducts: Product[] = products.map((p) => ({
+    ...p,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+  }))
+
   return (
-    <main className="min-h-screen bg-stone-50 flex items-center justify-center px-6">
-      <div className="text-center max-w-sm">
-        <h1 className="text-2xl font-black text-stone-900">Dashboard</h1>
-        <p className="text-stone-500 mt-2 text-sm">
-          Seller dashboard coming in Milestone 2. You are signed in.
-        </p>
-      </div>
-    </main>
+    <DashboardShell
+      storeName={seller.storeName}
+      slug={seller.slug}
+      products={serializedProducts}
+      heroImages={heroImages}
+    />
   )
 }

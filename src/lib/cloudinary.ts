@@ -6,20 +6,47 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+export function assertCloudinaryConfigured(): void {
+  const missing: string[] = []
+  if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim()) {
+    missing.push('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME')
+  }
+  if (!process.env.CLOUDINARY_API_KEY?.trim()) {
+    missing.push('CLOUDINARY_API_KEY')
+  }
+  if (!process.env.CLOUDINARY_API_SECRET?.trim()) {
+    missing.push('CLOUDINARY_API_SECRET')
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `Cloudinary is not configured. Set ${missing.join(', ')} in .env.local`
+    )
+  }
+}
+
+function safePublicId(filename: string): string {
+  const base = filename.replace(/\.[^/.]+$/, '')
+  const sanitized = base.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 60)
+  return `${sanitized || 'upload'}_${Date.now()}`
+}
+
 export type UploadResult = {
   url: string
   publicId: string
 }
 
-export async function uploadProductImage(
+function uploadImage(
   file: Buffer,
-  filename: string
+  filename: string,
+  folder: string
 ): Promise<UploadResult> {
+  assertCloudinaryConfigured()
+
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'qrs/products',
-        public_id: filename.replace(/\.[^/.]+$/, ''),
+        folder,
+        public_id: safePublicId(filename),
         overwrite: true,
         transformation: [
           { width: 800, height: 800, crop: 'fill', gravity: 'center' },
@@ -27,12 +54,39 @@ export async function uploadProductImage(
         ],
       },
       (error, result) => {
-        if (error) reject(error)
-        else resolve({ url: result!.secure_url, publicId: result!.public_id })
+        if (error) {
+          reject(
+            new Error(
+              error instanceof Error ? error.message : 'Cloudinary upload failed'
+            )
+          )
+        } else {
+          resolve({ url: result!.secure_url, publicId: result!.public_id })
+        }
       }
     )
     uploadStream.end(file)
   })
+}
+
+export async function uploadProductImage(
+  sellerId: string,
+  file: Buffer,
+  filename: string
+): Promise<UploadResult> {
+  return uploadImage(file, filename, `qrs/${sellerId}/products`)
+}
+
+export async function uploadHeroImage(
+  sellerId: string,
+  file: Buffer,
+  filename: string
+): Promise<UploadResult> {
+  return uploadImage(file, filename, `qrs/${sellerId}/hero`)
+}
+
+export async function deleteCloudinaryImage(publicId: string): Promise<void> {
+  await cloudinary.uploader.destroy(publicId)
 }
 
 export { cloudinary }

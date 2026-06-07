@@ -27,9 +27,10 @@ export async function POST(req: NextRequest) {
     const base64 = buffer.toString('base64')
     const mediaType = file.type || 'image/jpeg'
 
+    const seller = await getDefaultSeller()
     const [analysis, upload] = await Promise.all([
       analyzeProductImage(base64, mediaType),
-      uploadProductImage(buffer, file.name),
+      uploadProductImage(seller.id, buffer, file.name),
     ])
 
     return NextResponse.json({ analysis, imageUrl: upload.url, imagePublicId: upload.publicId })
