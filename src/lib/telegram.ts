@@ -1,7 +1,13 @@
-const TELEGRAM_API = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`
+function telegramApi(botToken: string): string {
+  return `https://api.telegram.org/bot${botToken}`
+}
 
-export async function sendTelegramMessage(chatId: string, text: string): Promise<void> {
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+export async function sendTelegramMessage(
+  botToken: string,
+  chatId: string,
+  text: string
+): Promise<void> {
+  await fetch(`${telegramApi(botToken)}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
@@ -9,11 +15,12 @@ export async function sendTelegramMessage(chatId: string, text: string): Promise
 }
 
 export async function sendTelegramMessageWithButtons(
+  botToken: string,
   chatId: string,
   text: string,
   buttons: { text: string; callback_data: string }[]
 ): Promise<void> {
-  await fetch(`${TELEGRAM_API}/sendMessage`, {
+  await fetch(`${telegramApi(botToken)}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -21,30 +28,42 @@ export async function sendTelegramMessageWithButtons(
       text,
       parse_mode: 'HTML',
       reply_markup: {
-        inline_keyboard: [buttons.map(b => ({ text: b.text, callback_data: b.callback_data }))],
+        inline_keyboard: [buttons.map((b) => ({ text: b.text, callback_data: b.callback_data }))],
       },
     }),
   })
 }
 
-export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
-  await fetch(`${TELEGRAM_API}/answerCallbackQuery`, {
+export async function answerCallbackQuery(
+  botToken: string,
+  callbackQueryId: string,
+  text?: string
+): Promise<void> {
+  await fetch(`${telegramApi(botToken)}/answerCallbackQuery`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ callback_query_id: callbackQueryId, text }),
   })
 }
 
-export async function sendTelegramPhoto(chatId: string, photoUrl: string, caption: string): Promise<void> {
-  await fetch(`${TELEGRAM_API}/sendPhoto`, {
+export async function sendTelegramPhoto(
+  botToken: string,
+  chatId: string,
+  photoUrl: string,
+  caption: string
+): Promise<void> {
+  await fetch(`${telegramApi(botToken)}/sendPhoto`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption }),
   })
 }
 
-export async function setTelegramWebhook(webhookUrl: string): Promise<void> {
-  const res = await fetch(`${TELEGRAM_API}/setWebhook`, {
+export async function setTelegramWebhook(
+  botToken: string,
+  webhookUrl: string
+): Promise<void> {
+  const res = await fetch(`${telegramApi(botToken)}/setWebhook`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url: webhookUrl }),

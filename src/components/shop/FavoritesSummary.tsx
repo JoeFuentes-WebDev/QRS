@@ -20,6 +20,7 @@ export function FavoritesSummary({
 }: Props) {
   const [tab, setTab] = useState<'cart' | 'saved'>('cart')
   const [loading, setLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   const cartItems = favorites.filter((f) => !f.pinned)
   const savedItems = favorites.filter((f) => f.pinned)
@@ -28,6 +29,7 @@ export function FavoritesSummary({
 
   const handleCheckout = async () => {
     setLoading(true)
+    setCheckoutError(null)
     try {
       const items: CartItem[] = cartItems.map((f) => ({
         productId: f.product.id,
@@ -35,15 +37,20 @@ export function FavoritesSummary({
         quantity: 1,
         price: f.product.price,
       }))
-      const res = await fetch('/api/checkout', {
+      const res = await fetch(`/api/${slug}/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, slug }),
+        body: JSON.stringify({ items }),
       })
       const data = await res.json()
+      if (!res.ok) {
+        setCheckoutError(data.error ?? 'Checkout failed')
+        return
+      }
       if (data.url) window.location.assign(data.url)
     } catch (err) {
       console.error(err)
+      setCheckoutError('Checkout failed')
     } finally {
       setLoading(false)
     }
@@ -110,6 +117,9 @@ export function FavoritesSummary({
             <span className="text-stone-400">Total</span>
             <span className="text-2xl font-black">{formatPrice(cartTotal)}</span>
           </div>
+          {checkoutError && (
+            <p className="text-red-400 text-sm text-center mb-3">{checkoutError}</p>
+          )}
           <button
             onClick={handleCheckout}
             disabled={loading}

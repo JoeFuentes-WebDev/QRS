@@ -49,10 +49,15 @@ export async function GET(req: NextRequest) {
           data: { status: 'CANCELLED' },
         })
 
-        await sendTelegramMessage(
-          process.env.LAURA_CHAT_ID!,
-          `⚠️ Order auto-cancelled after 96 hours.\n\n<b>${productNames}</b> is back in the shop. Customer has not been charged.`
-        )
+        const botToken = process.env.TELEGRAM_BOT_TOKEN
+        const chatId = process.env.LAURA_CHAT_ID
+        if (botToken && chatId) {
+          await sendTelegramMessage(
+            botToken,
+            chatId,
+            `⚠️ Order auto-cancelled after 96 hours.\n\n<b>${productNames}</b> is back in the shop. Customer has not been charged.`
+          )
+        }
 
         cancelled++
       } catch (error) {
@@ -63,14 +68,19 @@ export async function GET(req: NextRequest) {
       try {
         const hoursAgo = Math.round((now.getTime() - order.createdAt.getTime()) / (60 * 60 * 1000))
 
-        await sendTelegramMessageWithButtons(
-          process.env.LAURA_CHAT_ID!,
-          `⏰ <b>Reminder — Pending Order</b>\n\n<b>Item:</b> ${productNames}\n<b>Waiting:</b> ${hoursAgo} hours\n\nAuto-cancels in ${AUTO_CANCEL_HOURS - hoursAgo} hours.`,
-          [
-            { text: '✓ Yes, ship it', callback_data: `YES:${order.id}` },
-            { text: '✕ Cancel order', callback_data: `NO:${order.id}` },
-          ]
-        )
+        const botToken = process.env.TELEGRAM_BOT_TOKEN
+        const chatId = process.env.LAURA_CHAT_ID
+        if (botToken && chatId) {
+          await sendTelegramMessageWithButtons(
+            botToken,
+            chatId,
+            `⏰ <b>Reminder — Pending Order</b>\n\n<b>Item:</b> ${productNames}\n<b>Waiting:</b> ${hoursAgo} hours\n\nAuto-cancels in ${AUTO_CANCEL_HOURS - hoursAgo} hours.`,
+            [
+              { text: '✓ Yes, ship it', callback_data: `YES:${order.id}` },
+              { text: '✕ Cancel order', callback_data: `NO:${order.id}` },
+            ]
+          )
+        }
 
         reminded++
       } catch (error) {

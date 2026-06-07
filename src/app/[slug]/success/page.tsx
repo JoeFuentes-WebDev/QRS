@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import Stripe from 'stripe'
 import { notFound } from 'next/navigation'
 import { getSellerBySlug } from '@/lib/seller'
+import { getStripeClient } from '@/lib/stripe'
 import { formatPrice } from '@/lib/pricing'
 
 type Props = {
@@ -14,10 +14,13 @@ type OrderLine = {
   amount: number
 }
 
-async function getOrderLines(sessionId: string): Promise<OrderLine[]> {
-  if (!process.env.STRIPE_SECRET_KEY) return []
+async function getOrderLines(
+  sessionId: string,
+  seller: Awaited<ReturnType<typeof getSellerBySlug>>
+): Promise<OrderLine[]> {
+  if (!seller?.stripeSecretKey) return []
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+    const stripe = getStripeClient(seller)
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['line_items'],
     })
@@ -38,7 +41,7 @@ export default async function SuccessPage({ params, searchParams }: Props) {
   const seller = await getSellerBySlug(slug)
   if (!seller) notFound()
 
-  const orderLines = sessionId ? await getOrderLines(sessionId) : []
+  const orderLines = sessionId ? await getOrderLines(sessionId, seller) : []
   const total = orderLines.reduce((sum, line) => sum + line.amount, 0)
 
   return (
