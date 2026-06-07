@@ -18,7 +18,7 @@ export function FavoritesSummary({ favorites, onReset, onReviewSaved }: Props) {
   const cartItems = favorites.filter((f) => !f.pinned)
   const savedItems = favorites.filter((f) => f.pinned)
   const displayItems = tab === 'cart' ? cartItems : savedItems
-  const cartTotal = cartItems.reduce((sum, f) => sum + f.product.basePrice, 0)
+  const cartTotal = cartItems.reduce((sum, f) => sum + f.product.price, 0)
 
   const handleCheckout = async () => {
     setLoading(true)
@@ -27,7 +27,7 @@ export function FavoritesSummary({ favorites, onReset, onReviewSaved }: Props) {
         productId: f.product.id,
         product: f.product,
         quantity: 1,
-        price: f.product.basePrice,
+        price: f.product.price,
       }))
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -87,12 +87,12 @@ export function FavoritesSummary({ favorites, onReset, onReviewSaved }: Props) {
             onClick={fav.pinned ? () => onReviewSaved(fav.product) : undefined}
           >
             <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
-              <Image src={fav.product.imageUrl} alt={fav.product.name} fill className="object-cover" />
+              <Image src={fav.product.imageUrl ?? ''} alt={fav.product.name} fill className="object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-stone-900 truncate">{fav.product.name}</p>
               <p className="text-sm text-stone-500 capitalize">{fav.product.category}</p>
-              <p className="text-lg font-black text-stone-900 mt-1">{formatPrice(fav.product.basePrice)}</p>
+              <p className="text-lg font-black text-stone-900 mt-1">{formatPrice(fav.product.price)}</p>
             </div>
           </div>
         ))}

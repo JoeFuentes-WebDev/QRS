@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getDefaultSeller } from '@/lib/seller'
+
+function isAuthorized(req: NextRequest): boolean {
+  return req.headers.get('x-admin-secret') === process.env.ADMIN_SECRET
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -8,8 +13,11 @@ export async function GET(req: NextRequest) {
   const all = searchParams.get('all') === 'true'
 
   try {
+    const seller = await getDefaultSeller()
+
     const products = await prisma.product.findMany({
       where: {
+        sellerId: seller.id,
         ...(all ? {} : { inStock: true }),
         ...(category ? { category } : {}),
         ...(query

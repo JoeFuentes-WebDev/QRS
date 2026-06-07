@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { sendTelegramMessageWithButtons, sendTelegramPhoto } from '@/lib/telegram'
+import { getDefaultSeller } from '@/lib/seller'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -22,44 +23,49 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session
 
     try {
+      const seller = await getDefaultSeller()
       const items = JSON.parse(session.metadata?.items ?? '[]')
-      const customerName = session.customer_details?.name ?? 'Customer'
-      const customerEmail = session.customer_details?.email ?? ''
-      const customerCity = session.customer_details?.address?.city ?? ''
-      const customerState = session.customer_details?.address?.state ?? ''
+      const buyerName = session.customer_details?.name ?? 'Customer'
+      const buyerEmail = session.customer_details?.email ?? ''
+      const address = session.customer_details?.address
 
-      // Save order as PENDING
       const order = await prisma.order.create({
         data: {
+          sellerId: seller.id,
           stripeSessionId: session.id,
-          customerEmail,
+          buyerName,
+          buyerEmail,
+          shippingName: buyerName,
+          shippingStreet: address?.line1 ?? undefined,
+          shippingCity: address?.city ?? undefined,
+          shippingState: address?.state ?? undefined,
+          shippingZip: address?.postal_code ?? undefined,
+          shippingCountry: address?.country ?? undefined,
           status: 'PENDING',
           total: (session.amount_total ?? 0) / 100,
-          items: {
+          orderItems: {
             create: items.map((item: { productId: string; quantity: number; price: number }) => ({
               productId: item.productId,
               quantity: item.quantity,
-              pieceCount: 1,
-              price: item.price,
+              unitPrice: item.price,
             })),
           },
         },
-        include: { items: { include: { product: true } } },
+        include: { orderItems: { include: { product: true } } },
       })
 
-      // Mark items as sold
-      for (const item of order.items) {
+      for (const item of order.orderItems) {
         await prisma.product.update({
           where: { id: item.productId },
           data: { inStock: false },
         })
       }
 
-      const productNames = order.items.map(i => i.product.name).join(', ')
-      // Text Laura via Telegram
-      // Text Laura via Telegram with YES/NO buttons
-      // Send product photo first
-      const firstItem = order.items[0]
+      const productNames = order.orderItems.map(i => i.product.name).join(', ')
+      const customerCity = address?.city ?? ''
+      const customerState = address?.state ?? ''
+
+      const firstItem = order.orderItems[0]
       if (firstItem?.product?.imageUrl) {
         await sendTelegramPhoto(
           process.env.LAURA_CHAT_ID!,
@@ -68,10 +74,9 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      // Then send the order message with YES/NO buttons
       await sendTelegramMessageWithButtons(
         process.env.LAURA_CHAT_ID!,
-        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${customerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\nCan you ship this?`,
+        `🏺 <b>New Order!</b>\n\n<b>Item:</b> ${productNames}\n<b>Customer:</b> ${buyerName}, ${customerCity} ${customerState}\n<b>Total:</b> $${order.total.toFixed(2)}\n\nCan you ship this?`,
         [
           { text: '✓ Yes, ship it', callback_data: `YES:${order.id}` },
           { text: '✕ Not available', callback_data: `NO:${order.id}` },

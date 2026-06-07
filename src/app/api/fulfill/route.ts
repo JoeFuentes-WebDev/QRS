@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const order = await prisma.order.findFirst({
     where: { id: orderId },
-    include: { items: { include: { product: true } } },
+    include: { orderItems: { include: { product: true } } },
   })
 
   if (!order) {
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     `, { headers: { 'Content-Type': 'text/html' } })
   }
 
-  const productNames = order.items.map(i => i.product.name).join(', ')
+  const productNames = order.orderItems.map(i => i.product.name).join(', ')
 
   if (action === 'yes') {
     try {
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
       // Update order
       await prisma.order.update({
         where: { id: order.id },
-        data: { status: 'PAID' },
+        data: { status: 'CONFIRMED' },
       })
 
       // Email Laura the QR code
@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
         await stripe.paymentIntents.cancel(session.payment_intent as string)
       }
 
-      for (const item of order.items) {
+      for (const item of order.orderItems) {
         await prisma.product.update({
           where: { id: item.productId },
           data: { inStock: true },

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         currency: 'usd',
         product_data: {
           name: item.product.name,
-          images: [item.product.imageUrl],
+          images: item.product.imageUrl ? [item.product.imageUrl] : [],
           metadata: {
             productId: item.productId,
           },

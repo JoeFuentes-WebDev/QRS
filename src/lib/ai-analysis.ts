@@ -8,7 +8,18 @@ export type ImageAnalysis = {
   pieceCount: number
   description: string
   tags: string[]
-  aiLabel: string
+  aiColor: string
+  aiTexture: string
+  aiMaterial: string
+  suggestedPrice: number
+}
+
+function parseTags(tags: string[]) {
+  return {
+    aiColor: tags[0] ?? '',
+    aiTexture: tags[1] ?? '',
+    aiMaterial: tags[2] ?? '',
+  }
 }
 
 export async function analyzeProductImage(imageBase64: string, mediaType: string): Promise<ImageAnalysis> {
@@ -29,21 +40,21 @@ export async function analyzeProductImage(imageBase64: string, mediaType: string
           },
           {
             type: 'text',
-            text: `You are analyzing a photo of handmade pottery for an online shop called Laura's Pots.
+            text: `You are analyzing a photo of a product for an online shop.
 
 Respond ONLY with a JSON object (no markdown, no backticks) with these fields:
 {
-  "name": "short descriptive product name (e.g. 'Terracotta Mug', 'Blue Glazed Bowl')",
-  "category": "one of exactly: mug, bowl, vase, plate, set, other (always lowercase singular)",
-  "pieceCount": number of individual pottery pieces visible in the image,
-  "description": "1-2 sentence description of the piece, focusing on glaze, texture, shape",
+  "name": "short descriptive product name",
+  "category": "one lowercase category word (e.g. mug, bowl, vase, jewelry, apparel, other)",
+  "pieceCount": number of individual items visible in the image,
+  "description": "1-2 sentence description of the item",
   "tags": [
-    "dominant color (e.g. terracotta, blue, white, black, brown, natural, teal, speckled)",
-    "texture (e.g. smooth, rough, matte, glossy, speckled, crackled, textured)",
-    "material (e.g. stoneware, earthenware, porcelain, ceramic)",
+    "dominant color",
+    "texture (smooth, rough, matte, glossy, etc.)",
+    "material",
     "any other relevant descriptive tags"
   ],
-  "aiLabel": "brief raw description of what you see"
+  "suggestedPrice": suggested USD price as a number
 }`,
           },
         ],
@@ -54,16 +65,31 @@ Respond ONLY with a JSON object (no markdown, no backticks) with these fields:
   const text = response.content[0].type === 'text' ? response.content[0].text : ''
 
   try {
-    return JSON.parse(text) as ImageAnalysis
-  } catch {
-    // Fallback if parsing fails
+    const parsed = JSON.parse(text) as Omit<ImageAnalysis, 'aiColor' | 'aiTexture' | 'aiMaterial'>
+    const tagFields = parseTags(parsed.tags ?? [])
     return {
-      name: 'Handmade Pottery Piece',
+      ...parsed,
+      ...tagFields,
+      suggestedPrice: parsed.suggestedPrice ?? suggestedPriceFromCount(parsed.pieceCount ?? 1),
+    }
+  } catch {
+    return {
+      name: 'Product',
       category: 'other',
       pieceCount: 1,
-      description: 'A beautiful handmade pottery piece.',
+      description: 'A product listing.',
       tags: ['handmade'],
-      aiLabel: text.slice(0, 100),
+      aiColor: 'natural',
+      aiTexture: 'smooth',
+      aiMaterial: 'mixed',
+      suggestedPrice: 50,
     }
   }
+}
+
+function suggestedPriceFromCount(pieceCount: number): number {
+  if (pieceCount <= 1) return 50
+  if (pieceCount === 2) return 80
+  if (pieceCount === 3) return 100
+  return 150
 }

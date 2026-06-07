@@ -8,7 +8,7 @@ const shippo = new Shippo({ apiKeyHeader: process.env.SHIPPO_API_KEY! })
 async function handleAction(chatId: string, action: string, orderId: string) {
   const order = await prisma.order.findFirst({
     where: { id: orderId },
-    include: { items: { include: { product: true } } },
+    include: { orderItems: { include: { product: true } } },
   })
 
   if (!order) {
@@ -21,7 +21,7 @@ async function handleAction(chatId: string, action: string, orderId: string) {
     return
   }
 
-  const productNames = order.items.map(i => i.product.name).join(', ')
+  const productNames = order.orderItems.map(i => i.product.name).join(', ')
 
   if (action === 'YES') {
     await sendTelegramMessage(chatId, '⏳ Generating your shipping label...')
@@ -49,8 +49,8 @@ async function handleAction(chatId: string, action: string, orderId: string) {
           state: process.env.LAURA_ADDRESS_STATE!,
           zip: process.env.LAURA_ADDRESS_ZIP!,
           country: 'US',
-          email: 'job@joefuentes.com',
-          phone: '+14157944104',
+          email: process.env.LAURA_ADDRESS_EMAIL!,
+          phone: process.env.LAURA_ADDRESS_PHONE!,
         },
         addressTo: {
           name: session.customer_details?.name ?? 'Customer',
@@ -92,7 +92,7 @@ async function handleAction(chatId: string, action: string, orderId: string) {
       const tx = transaction as { qrCodeUrl?: string; labelUrl?: string }
       const qrUrl = tx.qrCodeUrl ?? tx.labelUrl ?? ''
 
-      await prisma.order.update({ where: { id: order.id }, data: { status: 'PAID' } })
+      await prisma.order.update({ where: { id: order.id }, data: { status: 'CONFIRMED' } })
 
       if (qrUrl) {
         await sendTelegramPhoto(chatId, qrUrl, `📦 Ship: ${productNames}\nShow this QR at USPS counter.`)
@@ -115,7 +115,7 @@ async function handleAction(chatId: string, action: string, orderId: string) {
         await stripe.paymentIntents.cancel(session.payment_intent as string)
       }
 
-      for (const item of order.items) {
+      for (const item of order.orderItems) {
         await prisma.product.update({ where: { id: item.productId }, data: { inStock: true } })
       }
 

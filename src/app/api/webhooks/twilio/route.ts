@@ -28,12 +28,12 @@ export async function POST(req: NextRequest) {
   const order = orderIdMatch
     ? await prisma.order.findFirst({
         where: { id: orderIdMatch[0], status: 'PENDING' },
-        include: { items: { include: { product: true } } },
+        include: { orderItems: { include: { product: true } } },
       })
     : await prisma.order.findFirst({
         where: { status: 'PENDING' },
         orderBy: { createdAt: 'desc' },
-        include: { items: { include: { product: true } } },
+        include: { orderItems: { include: { product: true } } },
       })
 
   if (!order) {
@@ -107,11 +107,11 @@ export async function POST(req: NextRequest) {
       // Update order status
       await prisma.order.update({
         where: { id: order.id },
-        data: { status: 'PAID' },
+        data: { status: 'CONFIRMED' },
       })
 
       // Text Laura the QR code
-      const productNames = order.items.map(i => i.product.name).join(', ')
+      const productNames = order.orderItems.map(i => i.product.name).join(', ')
       await sendSMS(from, `Got it! Ship: ${productNames}. Show this QR at USPS: ${qrUrl}`)
 
     } catch (error) {
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Mark items back in stock
-      for (const item of order.items) {
+      for (const item of order.orderItems) {
         await prisma.product.update({
           where: { id: item.productId },
           data: { inStock: true },

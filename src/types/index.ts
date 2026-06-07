@@ -1,18 +1,19 @@
-export type Category = 'mug' | 'bowl' | 'vase' | 'plate' | 'set' | 'other'
-
 export type Product = {
   id: string
+  sellerId: string
   name: string
   description?: string | null
-  category: Category
-  imageUrl: string
-  pieceCount: number
-  basePrice: number
-  price2?: number | null
-  price3?: number | null
+  category: string | null
+  imageUrl: string | null
+  imagePublicId?: string | null
+  quantity: number | null
+  price: number
   inStock: boolean
   tags: string[]
-  aiLabel?: string | null
+  aiColor?: string | null
+  aiTexture?: string | null
+  aiMaterial?: string | null
+  aiSuggestedPrice?: number | null
   createdAt: string
   updatedAt: string
 }

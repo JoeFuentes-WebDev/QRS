@@ -4,9 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import type { ImageAnalysis } from '@/lib/ai-analysis'
 import type { Product } from '@/types'
-import { formatPrice } from '@/lib/pricing'
+import { formatPrice, suggestedPrice } from '@/lib/pricing'
 
-const ADMIN_SECRET = 'lauras-pots-admin'
+const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET ?? 'lauras-pots-admin'
 
 type Tab = 'add' | 'edit' | 'hero'
 
@@ -19,9 +19,9 @@ type DraftItem = {
   status: 'pending' | 'analyzing' | 'ready' | 'saving' | 'saved' | 'error'
   analysis?: ImageAnalysis
   imageUrl?: string
-  basePrice: number
-  price2: number
-  price3: number
+  imagePublicId?: string
+  price: number
+  aiSuggestedPrice?: number
   name: string
   description: string
   category: string
@@ -72,18 +72,17 @@ function AddTab() {
         body: formData,
       })
       const data = await res.json()
-      const count = data.analysis.pieceCount ?? 1
-      const base = count <= 1 ? 50 : count === 2 ? 80 : count === 3 ? 100 : 150
+      const suggested = data.analysis.suggestedPrice ?? suggestedPrice(data.analysis.pieceCount ?? 1)
       updateItem(item.id, {
         status: 'ready',
         analysis: data.analysis,
         imageUrl: data.imageUrl,
+        imagePublicId: data.imagePublicId,
         name: data.analysis.name,
         description: data.analysis.description,
         category: data.analysis.category,
-        basePrice: base,
-        price2: 80,
-        price3: 100,
+        price: suggested,
+        aiSuggestedPrice: suggested,
       })
     } catch {
       updateItem(item.id, { status: 'error' })
@@ -96,7 +95,7 @@ function AddTab() {
       file,
       preview: URL.createObjectURL(file),
       status: 'pending',
-      basePrice: 50, price2: 80, price3: 100,
+      price: 50,
       name: '', description: '', category: '',
     }))
     setQueue(prev => [...prev, ...newItems])
@@ -116,12 +115,14 @@ function AddTab() {
           description: item.description,
           category: item.category,
           imageUrl: item.imageUrl,
-          pieceCount: item.analysis?.pieceCount ?? 1,
-          basePrice: item.basePrice,
-          price2: item.price2,
-          price3: item.price3,
+          imagePublicId: item.imagePublicId,
+          quantity: item.analysis?.pieceCount ?? 1,
+          price: item.price,
           tags: item.analysis?.tags ?? [],
-          aiLabel: item.analysis?.aiLabel,
+          aiColor: item.analysis?.aiColor,
+          aiTexture: item.analysis?.aiTexture,
+          aiMaterial: item.analysis?.aiMaterial,
+          aiSuggestedPrice: item.aiSuggestedPrice,
         }),
       })
       updateItem(item.id, { status: 'saved' })
@@ -214,7 +215,12 @@ function AddTab() {
               <Field label="Name" value={current.name} onChange={v => updateItem(current.id, { name: v })} />
               <Field label="Category" value={current.category} onChange={v => updateItem(current.id, { category: v })} />
               <Field label="Description" value={current.description} onChange={v => updateItem(current.id, { description: v })} textarea />
-              <Field label="Price $" value={String(current.basePrice)} onChange={v => updateItem(current.id, { basePrice: Number(v) })} type="number" />
+              <div>
+                <Field label="Price $" value={String(current.price)} onChange={v => updateItem(current.id, { price: Number(v) })} type="number" />
+                {current.aiSuggestedPrice != null && (
+                  <p className="text-xs text-stone-400 mt-1">AI suggested: {formatPrice(current.aiSuggestedPrice)}</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -269,7 +275,7 @@ function EditTab() {
     .then(data => { if (Array.isArray(data)) setProducts(data) })
   }, [])
 
-  const startEdit = (p: Product) => { setEditing(p.id); setEdits({ name: p.name, basePrice: p.basePrice, price2: p.price2 ?? undefined, price3: p.price3 ?? undefined }) }
+  const startEdit = (p: Product) => { setEditing(p.id); setEdits({ name: p.name, price: p.price }) }
 
   const saveEdit = async (id: string) => {
     await fetch(`/api/products/${id}`, {
@@ -307,7 +313,7 @@ function EditTab() {
           <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm">
             <div className="flex gap-3">
               <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
-                <Image src={p.imageUrl} alt={p.name} fill className="object-cover" />
+                <Image src={p.imageUrl ?? ''} alt={p.name} fill className="object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 {editing === p.id ? (
@@ -318,8 +324,8 @@ function EditTab() {
                       className="w-full border border-stone-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-stone-800"
                     />
                     <input type="number"
-                      value={String(edits.basePrice ?? p.basePrice ?? '')}
-                      onChange={e => setEdits(ed => ({ ...ed, basePrice: Number(e.target.value) }))}
+                      value={String(edits.price ?? p.price ?? '')}
+                      onChange={e => setEdits(ed => ({ ...ed, price: Number(e.target.value) }))}
                       placeholder="Price $"
                       className="border border-stone-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-stone-800 w-full"
                     />
@@ -332,7 +338,7 @@ function EditTab() {
                   <>
                     <p className="font-bold text-stone-900 truncate">{p.name}</p>
                     <p className="text-sm text-stone-400 capitalize">{p.category}</p>
-                    <p className="text-sm text-stone-600 font-medium">{formatPrice(p.basePrice)}</p>
+                    <p className="text-sm text-stone-600 font-medium">{formatPrice(p.price)}</p>
                   </>
                 )}
               </div>

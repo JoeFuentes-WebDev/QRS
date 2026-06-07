@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadProductImage } from '@/lib/cloudinary'
 import { analyzeProductImage } from '@/lib/ai-analysis'
+import { getDefaultSeller } from '@/lib/seller'
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = req.headers.get('x-admin-secret')
   return secret === process.env.ADMIN_SECRET
 }
 
-// POST /api/admin - upload image, get AI analysis back (not saved yet)
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -27,41 +27,56 @@ export async function POST(req: NextRequest) {
     const base64 = buffer.toString('base64')
     const mediaType = file.type || 'image/jpeg'
 
-    // Run AI analysis and image upload in parallel
-    const [analysis, imageUrl] = await Promise.all([
+    const [analysis, upload] = await Promise.all([
       analyzeProductImage(base64, mediaType),
       uploadProductImage(buffer, file.name),
     ])
 
-    return NextResponse.json({ analysis, imageUrl })
+    return NextResponse.json({ analysis, imageUrl: upload.url, imagePublicId: upload.publicId })
   } catch (error) {
     console.error('Admin upload error:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }
 
-// PUT /api/admin - save confirmed product to DB
 export async function PUT(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
+    const seller = await getDefaultSeller()
     const body = await req.json()
-    const { name, description, category, imageUrl, pieceCount, basePrice, price2, price3, tags, aiLabel } = body
+    const {
+      name,
+      description,
+      category,
+      imageUrl,
+      imagePublicId,
+      quantity,
+      price,
+      tags,
+      aiColor,
+      aiTexture,
+      aiMaterial,
+      aiSuggestedPrice,
+    } = body
 
     const product = await prisma.product.create({
       data: {
+        sellerId: seller.id,
         name,
         description,
         category,
         imageUrl,
-        pieceCount: Number(pieceCount),
-        basePrice: Number(basePrice),
-        price2: price2 ? Number(price2) : null,
-        price3: price3 ? Number(price3) : null,
+        imagePublicId,
+        quantity: quantity != null ? Number(quantity) : null,
+        price: Number(price),
         tags: tags ?? [],
-        aiLabel,
+        aiColor,
+        aiTexture,
+        aiMaterial,
+        aiSuggestedPrice: aiSuggestedPrice != null ? Number(aiSuggestedPrice) : null,
         inStock: true,
       },
     })
@@ -73,15 +88,23 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// PATCH /api/admin - update existing product
 export async function PATCH(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
+    const seller = await getDefaultSeller()
     const body = await req.json()
     const { id, ...data } = body
+
+    const existing = await prisma.product.findFirst({
+      where: { id, sellerId: seller.id },
+    })
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
 
     const product = await prisma.product.update({
       where: { id },

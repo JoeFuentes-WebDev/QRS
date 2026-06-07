@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist } from "next/font/google";
 import { unstable_noStore as noStore } from "next/cache";
 import "./globals.css";
@@ -9,16 +10,18 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Laura's Pots",
-  description: "Handmade pottery by Laura. Find your perfect piece.",
+  title: "QRS",
+  description: "Multi-tenant storefront platform",
 };
 
 async function getHeroImage(): Promise<string | null> {
   noStore();
   try {
     const { prisma } = await import("@/lib/prisma");
+    const { getDefaultSeller } = await import("@/lib/seller");
+    const seller = await getDefaultSeller();
     const hero = await prisma.heroImage.findFirst({
-      where: { active: true },
+      where: { sellerId: seller.id, active: true },
       orderBy: { order: 'asc' },
     });
     return hero?.imageUrl ?? null;
@@ -35,6 +38,7 @@ export default async function RootLayout({
   const heroImageUrl = await getHeroImage();
 
   return (
+    <ClerkProvider>
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body
         className="min-h-full flex flex-col items-center"
@@ -62,5 +66,6 @@ export default async function RootLayout({
         </div>
       </body>
     </html>
+    </ClerkProvider>
   );
 }
