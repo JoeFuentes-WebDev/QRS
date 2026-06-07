@@ -118,7 +118,8 @@ If a task is ambiguous, stop and ask. Do not assume and proceed.
 - Do not auto-set product prices from AI. AI suggests, seller confirms.
 - Do not expose seller Stripe keys in any client-side code or API response.
 - Do not create new API routes for operations Prisma can handle in a Server Action or Server Component.
-
+- Do not run `git commit` without explicit approval.
+- Do not run `git push` without explicit approval.
 ---
 
 *QRS — .cursorrules — June 2026*
