@@ -107,7 +107,7 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
           onClick={() => setExpanded(e => !e)}
         >
           <Image
-            src={product.imageUrl}
+            src={product.imageUrl ?? ''}
             alt={product.name}
             fill
             className="object-cover"
@@ -194,9 +194,9 @@ export function SwipeCard({ product, onSwipeRight, onSwipeLeft, onPin, remaining
             )}
 
             <div className="text-center">
-              <span className="text-3xl font-black text-stone-900">{formatPrice(product.basePrice)}</span>
-              {product.pieceCount > 1 && (
-                <span className="text-sm text-stone-400 ml-2">{product.pieceCount} pieces</span>
+              <span className="text-3xl font-black text-stone-900">{formatPrice(product.price)}</span>
+              {product.quantity != null && product.quantity > 1 && (
+                <span className="text-sm text-stone-400 ml-2">{product.quantity} pieces</span>
               )}
             </div>
 

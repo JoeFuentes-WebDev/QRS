@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getDefaultSeller } from '@/lib/seller'
 
 export async function GET() {
   try {
+    const seller = await getDefaultSeller()
+
     const products = await prisma.product.findMany({
-      where: { inStock: true },
+      where: { sellerId: seller.id, inStock: true },
       select: { category: true, tags: true },
     })
 
-    // Distinct categories
-    const categories = [...new Set(products.map(p => p.category))].filter(Boolean)
+    const categories = [...new Set(products.map(p => p.category))].filter(Boolean) as string[]
 
-    // Also surface common tags as browsable filters
     const allTags = products.flatMap(p => p.tags)
     const tagCounts = allTags.reduce<Record<string, number>>((acc, tag) => {
       acc[tag] = (acc[tag] ?? 0) + 1

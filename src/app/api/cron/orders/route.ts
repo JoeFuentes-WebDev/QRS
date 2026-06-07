@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const pendingOrders = await prisma.order.findMany({
     where: { status: 'PENDING' },
-    include: { items: { include: { product: true } } },
+    include: { orderItems: { include: { product: true } } },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   let cancelled = 0
 
   for (const order of pendingOrders) {
-    const productNames = order.items.map(i => i.product.name).join(', ')
+    const productNames = order.orderItems.map(i => i.product.name).join(', ')
 
     if (order.createdAt < cancelThreshold) {
       try {
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
           await stripe.paymentIntents.cancel(session.payment_intent as string)
         }
 
-        for (const item of order.items) {
+        for (const item of order.orderItems) {
           await prisma.product.update({
             where: { id: item.productId },
             data: { inStock: true },
