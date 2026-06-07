@@ -1,0 +1,124 @@
+# .cursorrules — QRS
+
+These rules are always active. Follow them without being asked.
+
+---
+
+## Stack Constraints
+
+- Next.js 14 App Router + TypeScript. No Pages Router.
+- Tailwind CSS for all styling. No CSS modules, no styled-components, no inline style objects unless unavoidable.
+- shadcn/ui for dashboard/admin UI. Custom components for shop UI.
+- Prisma 5 + Neon (Postgres). No raw SQL unless Prisma cannot express the query.
+- Clerk for auth. No NextAuth, no custom auth.
+- Resend for email. No Nodemailer, no SendGrid.
+- Anthropic SDK for AI features. No OpenAI.
+
+---
+
+## File Structure
+
+```
+src/
+  app/
+    page.tsx                    # Marketing landing
+    layout.tsx                  # Root layout with ClerkProvider
+    sign-up/[[...sign-up]]/     # Clerk signup
+    sign-in/[[...sign-in]]/     # Clerk signin
+    onboarding/page.tsx         # Post-signup onboarding wizard
+    dashboard/                  # Seller admin (protected)
+      page.tsx
+      settings/page.tsx
+    [slug]/                     # Public shop (unprotected)
+      page.tsx
+      success/page.tsx
+    api/
+      webhooks/
+        stripe/route.ts
+        telegram/route.ts
+      cron/
+        reset-order-counts/route.ts
+  components/
+    shop/                       # Swipe UI components
+    dashboard/                  # Admin/dashboard components
+    onboarding/                 # Onboarding wizard components
+    ui/                         # shadcn/ui components
+  lib/
+    stripe.ts                   # Per-seller Stripe client factory
+    resend.ts                   # Email fulfillment
+    telegram.ts                 # Telegram utilities (per-seller)
+    ai-analysis.ts              # Claude Vision
+    fulfillment.ts              # Fulfillment router
+    seller.ts                   # Seller lookup helpers
+  middleware.ts
+prisma/
+  schema.prisma
+```
+
+---
+
+## Multi-Tenancy Rules
+
+- Every DB query that touches Products, HeroImages, or Orders MUST filter by `sellerId`.
+- Never query across sellers. No query without a `where: { sellerId }` clause on tenant-scoped tables.
+- Get `sellerId` from the Clerk session → Seller record lookup. Never trust a `sellerId` from the client.
+- The seller lookup helper lives in `src/lib/seller.ts`. Use it everywhere. Do not inline the lookup.
+
+---
+
+## Auth Rules
+
+- `/dashboard` and all sub-routes are protected by Clerk middleware.
+- `/[slug]` and `/api/webhooks/*` are public.
+- Post-signup: if authenticated user has no Seller record, redirect to `/onboarding`.
+- Never expose Stripe keys, Shippo keys, or Telegram tokens in API responses or client bundles.
+
+---
+
+## Approval Rule
+
+Never execute fixes or make changes without first explaining the problem and what the fix would do, then waiting for explicit approval. Diagnose first, act second.
+
+If a task is ambiguous, stop and ask. Do not assume and proceed.
+
+---
+
+## TypeScript Rules
+
+- No `any`. Use proper types or `unknown` with a type guard.
+- All API route handlers must type their request and response.
+- Prisma-generated types are the source of truth for DB models. Do not re-declare them.
+
+---
+
+## Component Rules
+
+- Server Components by default. Add `"use client"` only when needed (event handlers, hooks, browser APIs).
+- No prop drilling more than 2 levels. Use context or pass data at the page level.
+- Every async component and data fetch has a loading state and an error state.
+
+---
+
+## Naming Conventions
+
+- Files: kebab-case (`swipe-card.tsx`, `seller-settings.tsx`)
+- Components: PascalCase (`SwipeCard`, `SellerSettings`)
+- API routes: follow Next.js convention (`route.ts`)
+- DB fields: camelCase (Prisma default)
+- Environment variables: SCREAMING_SNAKE_CASE
+
+---
+
+## What Not to Do
+
+- Do not install new dependencies without flagging them first.
+- Do not add new color tokens, fonts, or design system elements without explicit instruction.
+- Do not change the swipe gesture mapping (right=buy, left=skip, up=save).
+- Do not remove the `e.stopPropagation()` from action button handlers.
+- Do not auto-set product prices from AI. AI suggests, seller confirms.
+- Do not expose seller Stripe keys in any client-side code or API response.
+- Do not create new API routes for operations Prisma can handle in a Server Action or Server Component.
+
+---
+
+*QRS — .cursorrules — June 2026*
