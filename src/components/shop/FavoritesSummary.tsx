@@ -6,12 +6,18 @@ import type { FavoriteItem, CartItem, Product } from '@/types'
 import { formatPrice } from '@/lib/pricing'
 
 type Props = {
+  slug: string
   favorites: FavoriteItem[]
   onReset: () => void
   onReviewSaved: (product: Product) => void
 }
 
-export function FavoritesSummary({ favorites, onReset, onReviewSaved }: Props) {
+export function FavoritesSummary({
+  slug,
+  favorites,
+  onReset,
+  onReviewSaved,
+}: Props) {
   const [tab, setTab] = useState<'cart' | 'saved'>('cart')
   const [loading, setLoading] = useState(false)
 
@@ -32,7 +38,7 @@ export function FavoritesSummary({ favorites, onReset, onReviewSaved }: Props) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, slug }),
       })
       const data = await res.json()
       if (data.url) window.location.assign(data.url)

@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getDefaultSeller } from '@/lib/seller'
+import { getDefaultSeller, getSellerBySlug } from '@/lib/seller'
 
 function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('x-admin-secret') === process.env.ADMIN_SECRET
+}
+
+async function resolveSeller(req: NextRequest) {
+  const slug = new URL(req.url).searchParams.get('slug')
+  if (slug) {
+    const seller = await getSellerBySlug(slug)
+    if (!seller) return null
+    return seller
+  }
+  return getDefaultSeller()
 }
 
 export async function GET(req: NextRequest) {
@@ -13,7 +23,10 @@ export async function GET(req: NextRequest) {
   const all = searchParams.get('all') === 'true'
 
   try {
-    const seller = await getDefaultSeller()
+    const seller = await resolveSeller(req)
+    if (!seller) {
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
+    }
 
     const products = await prisma.product.findMany({
       where: {

@@ -1,10 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getDefaultSeller } from '@/lib/seller'
+import { getDefaultSeller, getSellerBySlug } from '@/lib/seller'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const seller = await getDefaultSeller()
+    const slug = new URL(req.url).searchParams.get('slug')
+    const seller = slug
+      ? await getSellerBySlug(slug)
+      : await getDefaultSeller()
+    if (!seller) {
+      return NextResponse.json({ categories: [], popularTags: [] })
+    }
 
     const products = await prisma.product.findMany({
       where: { sellerId: seller.id, inStock: true },

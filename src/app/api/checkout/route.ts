@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import type { CartItem } from '@/types'
+import { getSellerBySlug } from '@/lib/seller'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(req: NextRequest) {
   try {
-    const { items }: { items: CartItem[] } = await req.json()
+    const { items, slug }: { items: CartItem[]; slug: string } = await req.json()
+
+    if (!slug) {
+      return NextResponse.json({ error: 'Shop slug required' }, { status: 400 })
+    }
+
+    const seller = await getSellerBySlug(slug)
+    if (!seller) {
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404 })
+    }
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 })
@@ -34,9 +44,11 @@ export async function POST(req: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['US'],
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/shop`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/${slug}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/${slug}`,
       metadata: {
+        sellerId: seller.id,
+        sellerSlug: slug,
         items: JSON.stringify(
           items.map((i) => ({
             productId: i.productId,

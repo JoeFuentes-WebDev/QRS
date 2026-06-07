@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { uploadProductImage } from '@/lib/cloudinary'
-import { getDefaultSeller } from '@/lib/seller'
+import { getDefaultSeller, getSellerBySlug } from '@/lib/seller'
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = req.headers.get('x-admin-secret')
   return secret === process.env.ADMIN_SECRET
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const seller = await getDefaultSeller()
+    const slug = new URL(req.url).searchParams.get('slug')
+    const seller = slug
+      ? await getSellerBySlug(slug)
+      : await getDefaultSeller()
+    if (!seller) return NextResponse.json([])
     const images = await prisma.heroImage.findMany({
       where: { sellerId: seller.id, active: true },
       orderBy: { order: 'asc' },

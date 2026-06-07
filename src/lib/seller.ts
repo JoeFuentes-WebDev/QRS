@@ -21,6 +21,12 @@ export async function getSellerBySlug(slug: string) {
   return prisma.seller.findUnique({ where: { slug } })
 }
 
+export async function requireSellerBySlug(slug: string) {
+  const seller = await getSellerBySlug(slug)
+  if (!seller) return null
+  return seller
+}
+
 export async function getSellerByClerkUserId(clerkUserId: string) {
   return prisma.seller.findUnique({ where: { clerkUserId } })
 }

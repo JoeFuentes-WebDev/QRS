@@ -66,7 +66,7 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
             value={storeName}
             onChange={(e) => handleStoreNameChange(e.target.value)}
             className={inputClass}
-            placeholder="Laura's Pots"
+            placeholder="My Shop"
           />
           {fieldError('storeName') && (
             <p className="text-red-400 text-sm mt-1">{fieldError('storeName')}</p>
@@ -90,7 +90,7 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
             }}
             onBlur={handleSlugBlur}
             className={inputClass}
-            placeholder="lauras-pots"
+            placeholder="my-shop"
           />
           <p className="text-stone-400 text-sm mt-1">
             qrs.app/{slug || 'your-slug'}

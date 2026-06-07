@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-const STORAGE_KEY = 'lauras-pots-onboarded'
+const STORAGE_KEY = 'qrs_swipe_onboarded'
 
 type Props = {
   onDismiss: () => void
