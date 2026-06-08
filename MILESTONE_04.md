@@ -1,4 +1,4 @@
-# MILESTONE_04 — Checkout and Fulfillment
+approveapproved# MILESTONE_04 — Checkout and Fulfillment
 ## QRS
 
 This prompt begins Milestone 4. Read it fully before writing any code.

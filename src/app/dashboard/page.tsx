@@ -28,6 +28,7 @@ export default async function DashboardPage() {
     <DashboardShell
       storeName={seller.storeName}
       slug={seller.slug}
+      monthlyOrderCount={seller.monthlyOrderCount}
       products={serializedProducts}
       heroImages={heroImages}
     />

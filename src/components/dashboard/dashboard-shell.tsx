@@ -6,6 +6,7 @@ import type { Product } from '@/types'
 import { AddTab } from '@/components/dashboard/add-tab'
 import { EditTab } from '@/components/dashboard/edit-tab'
 import { HeroTab } from '@/components/dashboard/hero-tab'
+import { freemiumUsageMessage } from '@/lib/freemium'
 
 type Tab = 'add' | 'edit' | 'hero'
 
@@ -19,11 +20,13 @@ type HeroImage = {
 export function DashboardShell({
   storeName,
   slug,
+  monthlyOrderCount,
   products,
   heroImages,
 }: {
   storeName: string
   slug: string
+  monthlyOrderCount: number
   products: Product[]
   heroImages: HeroImage[]
 }) {
@@ -48,7 +51,7 @@ export function DashboardShell({
         </Link>
       </header>
 
-      <div className="px-6 py-3 border-b border-stone-200">
+      <div className="px-6 py-3 border-b border-stone-200 space-y-1">
         <p className="text-stone-500 text-xs text-center">
           Your shop:{' '}
           <Link
@@ -59,6 +62,9 @@ export function DashboardShell({
           >
             qrs.app/{slug}
           </Link>
+        </p>
+        <p className="text-stone-400 text-xs text-center">
+          {freemiumUsageMessage(monthlyOrderCount)}
         </p>
       </div>
 

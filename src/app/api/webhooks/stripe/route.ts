@@ -7,6 +7,7 @@ import {
   decrementProductQuantities,
   type OrderWithItems,
 } from '@/lib/fulfillment'
+import { logThresholdCrossed } from '@/lib/freemium'
 
 type CheckoutMetadata = {
   sellerId?: string
@@ -105,6 +106,16 @@ export async function POST(req: NextRequest) {
       })
 
       await decrementProductQuantities(order.orderItems, seller.id)
+
+      const updatedSeller = await prisma.seller.update({
+        where: { id: seller.id },
+        data: { monthlyOrderCount: { increment: 1 } },
+      })
+
+      if (updatedSeller.monthlyOrderCount === 21) {
+        logThresholdCrossed(updatedSeller.id, updatedSeller.storeName)
+      }
+
       await routeFulfillment(order as OrderWithItems, seller)
     } catch (error) {
       console.error('Order processing error:', error)
