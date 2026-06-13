@@ -28,7 +28,7 @@ export default function RootLayout({
               'radial-gradient(ellipse at center, #f5f5f5 0%, #d4d4d4 60%, #a3a3a3 100%)',
           }}
         >
-          <div className="relative w-full max-w-[430px] min-h-screen bg-white shadow-2xl flex flex-col">
+          <div className="relative w-full max-w-[430px] md:max-w-full min-h-screen bg-white md:shadow-none flex flex-col">
             {children}
           </div>
         </body>
