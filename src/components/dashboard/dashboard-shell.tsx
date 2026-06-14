@@ -60,7 +60,7 @@ export function DashboardShell({
             target="_blank"
             rel="noopener noreferrer"
           >
-            qrs.app/{slug}
+            my-qrs.co/{slug}
           </Link>
         </p>
         <p className="text-stone-400 text-xs text-center">
