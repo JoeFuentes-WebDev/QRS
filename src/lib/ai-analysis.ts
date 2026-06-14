@@ -24,7 +24,7 @@ function parseTags(tags: string[]) {
 
 export async function analyzeProductImage(imageBase64: string, mediaType: string): Promise<ImageAnalysis> {
   const response = await client.messages.create({
-    model: 'claude-opus-4-20250514',
+    model: 'claude-opus-4-6',
     max_tokens: 500,
     messages: [
       {
