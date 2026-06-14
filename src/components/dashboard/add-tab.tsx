@@ -46,6 +46,29 @@ function stringToTags(value: string): string[] {
     .filter(Boolean)
 }
 
+async function compressImage(file: File, maxPx = 1200, quality = 0.8): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new window.Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        (blob) => resolve(new File([blob!], file.name, { type: 'image/jpeg' })),
+        'image/jpeg',
+        quality
+      )
+    }
+    img.src = url
+  })
+}
+
 export function AddTab() {
   const [queue, setQueue] = useState<DraftItem[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
@@ -103,12 +126,14 @@ export function AddTab() {
     }
   }, [])
 
-  const handleFiles = (files: FileList) => {
+  const handleFiles = async (files: FileList) => {
     const remaining = MAX_FILES - queue.length
     if (remaining <= 0) return
 
     const selected = Array.from(files).slice(0, remaining)
-    const newItems: DraftItem[] = selected.map((file) => ({
+    const compressed = await Promise.all(selected.map((f) => compressImage(f)))
+
+    const newItems: DraftItem[] = compressed.map((file) => ({
       id: `${Date.now()}-${Math.random()}`,
       file,
       preview: URL.createObjectURL(file),

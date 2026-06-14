@@ -31,7 +31,7 @@ export function DashboardShell({
   heroImages: HeroImage[]
 }) {
   const [tab, setTab] = useState<Tab>('add')
-  const shopUrl = `https://qrs.app/${slug}`
+  const shopUrl = `https://my-qrs.co/${slug}`
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'add', label: 'Add' },
