@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { getCurrentSeller } from '@/lib/seller'
 import { prisma } from '@/lib/prisma'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
@@ -5,7 +6,7 @@ import type { Product } from '@/types'
 
 export default async function DashboardPage() {
   const seller = await getCurrentSeller()
-  if (!seller) return null
+  if (!seller) redirect('/onboarding')
 
   const [products, heroImages] = await Promise.all([
     prisma.product.findMany({

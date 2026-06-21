@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const from = formData.get('From') as string
 
   // Extract order ID from the last incoming message context
-  // We parse it from the Body if Laura replies with YES/NO to a specific order
+  // We parse it from the Body if the seller replies with YES/NO to a specific order
   const orderIdMatch = body.match(/[A-Z0-9]{25}/)
   
   // Find the most recent PENDING order if no ID in reply
@@ -57,11 +57,11 @@ export async function POST(req: NextRequest) {
       // Create Shippo shipment
       const shipment = await shippo.shipments.create({
         addressFrom: {
-          name: process.env.LAURA_ADDRESS_NAME!,
-          street1: process.env.LAURA_ADDRESS_STREET!,
-          city: process.env.LAURA_ADDRESS_CITY!,
-          state: process.env.LAURA_ADDRESS_STATE!,
-          zip: process.env.LAURA_ADDRESS_ZIP!,
+          name: process.env.SELLER_ADDRESS_NAME!,
+          street1: process.env.SELLER_ADDRESS_STREET!,
+          city: process.env.SELLER_ADDRESS_CITY!,
+          state: process.env.SELLER_ADDRESS_STATE!,
+          zip: process.env.SELLER_ADDRESS_ZIP!,
           country: 'US',
         },
         addressTo: {
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
         data: { status: 'CONFIRMED' },
       })
 
-      // Text Laura the QR code
+      // Text the seller the QR code
       const productNames = order.orderItems.map(i => i.product.name).join(', ')
       await sendSMS(from, `Got it! Ship: ${productNames}. Show this QR at USPS: ${qrUrl}`)
 

@@ -17,11 +17,11 @@ Ordered milestones. Complete each milestone fully before starting the next. Each
 5. Add Clerk middleware to `src/middleware.ts` — protect `/dashboard` routes only
 6. Update `prisma/schema.prisma` — add full V2 schema (Seller table, sellerId on all tables, quantity on Product)
 7. Create migration: `npx prisma migrate dev --name v2-multi-tenant`
-8. Seed script: create Laura's Seller record, assign her `sellerId` to all existing Products, HeroImages, Orders
+8. Seed script: create default Seller record, assign `sellerId` to all existing Products, HeroImages, Orders
 9. Run migration and seed on local Neon dev database
-10. Verify: Laura's shop sqrs loads at `/laura`, existing products visible
+10. Verify: default seller shop loads at assigned slug, existing products visible
 
-**Done when:** App runs on main branch. Laura's data intact. `/dashboard` redirects to Clerk login when unauthenticated.
+**Done when:** App runs on main branch. Existing seller data intact. `/dashboard` redirects to Clerk login when unauthenticated.
 
 ---
 
@@ -123,17 +123,17 @@ Ordered milestones. Complete each milestone fully before starting the next. Each
 
 ## Milestone 6 — Migration and Deploy
 
-**Goal:** V2 deployed to Vercel. Laura's shop live at `qrs.app/laura` (or staging URL). All existing data intact.
+**Goal:** V2 deployed to Vercel. Existing seller shop live at production URL (or staging). All existing data intact.
 
 ### Tasks
 1. Run migration on production Neon database
-2. Run seed script on production (Laura's seller record + sellerId assignment)
+2. Run seed script on production (default seller record + sellerId assignment)
 3. Add all new env vars to Vercel: Clerk keys, Resend key
 4. Deploy main branch to Vercel preview URL
-5. Smoke test: Laura's shop, new seller signup, add product, checkout (test mode), email notification
+5. Smoke test: existing seller shop, new seller signup, add product, checkout (test mode), email notification
 6. Merge to main when smoke tests pass
 
-**Done when:** V2 live on Vercel. Laura's shop works. New seller signup works end to end.
+**Done when:** V2 live on Vercel. Existing seller shop works. New seller signup works end to end.
 
 ---
 

@@ -54,14 +54,14 @@ export async function GET(req: NextRequest) {
       // Create Shippo shipment
       const shipment = await shippo.shipments.create({
         addressFrom: {
-          name: process.env.LAURA_ADDRESS_NAME!,
-          street1: process.env.LAURA_ADDRESS_STREET!,
-          city: process.env.LAURA_ADDRESS_CITY!,
-          state: process.env.LAURA_ADDRESS_STATE!,
-          zip: process.env.LAURA_ADDRESS_ZIP!,
+          name: process.env.SELLER_ADDRESS_NAME!,
+          street1: process.env.SELLER_ADDRESS_STREET!,
+          city: process.env.SELLER_ADDRESS_CITY!,
+          state: process.env.SELLER_ADDRESS_STATE!,
+          zip: process.env.SELLER_ADDRESS_ZIP!,
           country: 'US',
-          email: process.env.LAURA_ADDRESS_EMAIL!,
-          phone: process.env.LAURA_ADDRESS_PHONE!,
+          email: process.env.SELLER_ADDRESS_EMAIL!,
+          phone: process.env.SELLER_ADDRESS_PHONE!,
         },
         addressTo: {
           name: session.customer_details?.name ?? 'Customer',
@@ -113,10 +113,10 @@ export async function GET(req: NextRequest) {
         data: { status: 'CONFIRMED' },
       })
 
-      // Email Laura the QR code
+      // Email the seller the QR code
       await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: process.env.LAURA_EMAIL!,
+        to: process.env.SELLER_EMAIL!,
         subject: `Shipping label for: ${productNames}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">

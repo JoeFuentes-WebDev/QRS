@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
         })
 
         const botToken = process.env.TELEGRAM_BOT_TOKEN
-        const chatId = process.env.LAURA_CHAT_ID
+        const chatId = process.env.SELLER_CHAT_ID
         if (botToken && chatId) {
           await sendTelegramMessage(
             botToken,
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         const hoursAgo = Math.round((now.getTime() - order.createdAt.getTime()) / (60 * 60 * 1000))
 
         const botToken = process.env.TELEGRAM_BOT_TOKEN
-        const chatId = process.env.LAURA_CHAT_ID
+        const chatId = process.env.SELLER_CHAT_ID
         if (botToken && chatId) {
           await sendTelegramMessageWithButtons(
             botToken,

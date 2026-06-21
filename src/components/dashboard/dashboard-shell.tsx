@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { SignOutButton } from '@clerk/nextjs'
 import type { Product } from '@/types'
 import { AddTab } from '@/components/dashboard/add-tab'
 import { EditTab } from '@/components/dashboard/edit-tab'
@@ -43,12 +44,22 @@ export function DashboardShell({
     <main className="min-h-screen bg-stone-50 flex flex-col">
       <header className="px-6 py-5 border-b border-stone-200 flex items-center justify-between">
         <h1 className="text-lg font-bold text-stone-900">Welcome, {storeName}</h1>
-        <Link
-          href="/dashboard/settings"
-          className="text-sm text-stone-600 font-medium hover:text-stone-900"
-        >
-          Settings
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/settings"
+            className="text-sm text-stone-600 font-medium hover:text-stone-900"
+          >
+            Settings
+          </Link>
+          <SignOutButton redirectUrl="/">
+            <button
+              type="button"
+              className="text-sm text-stone-600 font-medium hover:text-stone-900"
+            >
+              Log out
+            </button>
+          </SignOutButton>
+        </div>
       </header>
 
       <div className="px-6 py-3 border-b border-stone-200 space-y-1">

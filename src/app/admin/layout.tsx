@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? 'lauras-pots-2024'
-const STORAGE_KEY = 'lauras-pots-admin-auth'
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? 'qrs-admin-2024'
+const STORAGE_KEY = 'qrs-admin-auth'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false)
@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="text-center">
             <p className="text-4xl mb-3">🏺</p>
             <h1 className="text-2xl font-black text-stone-900">Admin</h1>
-            <p className="text-stone-400 text-sm mt-1">Laura&apos;s Pots</p>
+            <p className="text-stone-400 text-sm mt-1">QRS</p>
           </div>
 
           <div className="space-y-3">

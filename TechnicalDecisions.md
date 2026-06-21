@@ -94,9 +94,9 @@ Do not use NextAuth. Do not build custom auth.
 ---
 
 ## Migration Strategy
-**Decision:** Seed a single Seller record for Laura during migration. All existing Products, HeroImages, and Orders get Laura's `sellerId` as default.
+**Decision:** Seed a single Seller record during migration. All existing Products, HeroImages, and Orders get that seller's `sellerId` as default.
 
-**Rationale:** Preserves Laura's existing data. Clean migration path. Laura's shop continues to work at `/laura` (or whatever slug is assigned during migration).
+**Rationale:** Preserves existing data. Clean migration path. The shop continues to work at its assigned slug.
 
 ---
 

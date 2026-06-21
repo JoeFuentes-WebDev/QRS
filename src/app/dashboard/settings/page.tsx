@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { getCurrentSeller } from '@/lib/seller'
 import { SettingsForm } from '@/components/dashboard/settings-form'
 
@@ -8,7 +9,7 @@ function fulfillmentLabel(type: string): string {
 
 export default async function SettingsPage() {
   const seller = await getCurrentSeller()
-  if (!seller) return null
+  if (!seller) redirect('/onboarding')
 
   return (
     <main className="min-h-screen bg-stone-50">

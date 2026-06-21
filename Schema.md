@@ -214,8 +214,8 @@ model OrderItem {
 V1 had no Seller table. All products/orders belonged to a single implicit owner.
 
 V2 migration steps:
-1. Add `Seller` table and create a single seed seller for Laura
-2. Add `sellerId` columns to all tables with a default pointing to Laura's seed seller ID
+1. Add `Seller` table and create a single seed seller for the default tenant
+2. Add `sellerId` columns to all tables with a default pointing to the seed seller ID
 3. Make `sellerId` required going forward
 4. Run `prisma migrate deploy`
 
