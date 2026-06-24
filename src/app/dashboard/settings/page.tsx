@@ -1,14 +1,19 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getShopUrlDisplay } from '@/lib/qr'
+import { formatUsPhoneDisplay } from '@/lib/phone'
 import { getCurrentSeller } from '@/lib/seller'
+import { getTelegramConnectUrl } from '@/lib/telegram'
 import { NotificationEmailForm } from '@/components/dashboard/notification-email-form'
+import { NotificationPhoneForm } from '@/components/dashboard/notification-phone-form'
+import { TelegramConnectCard } from '@/components/dashboard/TelegramConnectCard'
 
 export default async function SettingsPage() {
   const seller = await getCurrentSeller()
   if (!seller) redirect('/onboarding')
 
   const shopUrl = getShopUrlDisplay(seller.slug)
+  const telegramConnectUrl = getTelegramConnectUrl(seller.id)
 
   return (
     <main className="min-h-screen bg-stone-50">
@@ -51,8 +56,19 @@ export default async function SettingsPage() {
           <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
             Notifications
           </h2>
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 shadow-sm space-y-6">
             <NotificationEmailForm defaultEmail={seller.notificationEmail} />
+            <div className="border-t border-stone-100 pt-6">
+              <NotificationPhoneForm
+                defaultPhone={formatUsPhoneDisplay(seller.sellerPhone)}
+              />
+            </div>
+            <div className="border-t border-stone-100 pt-6">
+              <TelegramConnectCard
+                telegramChatId={seller.telegramChatId}
+                connectUrl={telegramConnectUrl}
+              />
+            </div>
           </div>
         </section>
 

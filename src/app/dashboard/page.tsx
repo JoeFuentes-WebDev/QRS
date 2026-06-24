@@ -5,12 +5,10 @@ import { getCurrentSeller } from '@/lib/seller'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { HeroManager } from '@/components/dashboard/hero-manager'
 import { StripeConnectCard } from '@/components/dashboard/StripeConnectCard'
-import { TelegramConnectCard } from '@/components/dashboard/TelegramConnectCard'
 import {
   PostcardDownload,
   type PostcardImageOption,
 } from '@/components/dashboard/postcard-download'
-import { getTelegramConnectUrl } from '@/lib/telegram'
 import { listHeroImagesForSeller } from '@/services/hero.service'
 
 export default async function DashboardPage() {
@@ -36,8 +34,6 @@ export default async function DashboardPage() {
     }))
   )
 
-  const telegramConnectUrl = getTelegramConnectUrl(seller.id)
-
   return (
     <main className="min-h-screen bg-stone-50 flex flex-col">
       <DashboardHeader storeName={seller.storeName} />
@@ -47,11 +43,6 @@ export default async function DashboardPage() {
           <StripeConnectCard
             stripeConnectOnboarded={seller.stripeConnectOnboarded}
             stripeConnectAccountId={seller.stripeConnectAccountId}
-          />
-
-          <TelegramConnectCard
-            telegramChatId={seller.telegramChatId}
-            connectUrl={telegramConnectUrl}
           />
 
           <Link

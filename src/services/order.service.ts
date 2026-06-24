@@ -12,6 +12,7 @@ const orderInclude = {
       storeName: true,
       notificationEmail: true,
       telegramChatId: true,
+      sellerPhone: true,
     },
   },
 } as const

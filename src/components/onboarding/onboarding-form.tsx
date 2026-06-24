@@ -124,6 +124,27 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
             <p className="text-red-400 text-sm mt-1">{fieldError('notificationEmail')}</p>
           )}
         </div>
+
+        <div>
+          <label htmlFor="sellerPhone" className={labelClass}>
+            Mobile number for order alerts
+          </label>
+          <input
+            id="sellerPhone"
+            name="sellerPhone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="(555) 555-5555"
+            className={inputClass}
+          />
+          <p className="text-stone-400 text-sm mt-1">
+            Optional but recommended — SMS alerts when you get a new order.
+          </p>
+          {fieldError('sellerPhone') && (
+            <p className="text-red-400 text-sm mt-1">{fieldError('sellerPhone')}</p>
+          )}
+        </div>
       </section>
 
       <button

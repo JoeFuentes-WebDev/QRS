@@ -85,6 +85,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         notificationEmail: order.seller.notificationEmail,
         storeName: order.seller.storeName,
         telegramChatId: order.seller.telegramChatId,
+        sellerPhone: order.seller.sellerPhone,
       },
     })
 

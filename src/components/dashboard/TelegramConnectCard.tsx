@@ -3,6 +3,8 @@ type TelegramConnectCardProps = {
   connectUrl: string | null
 }
 
+const labelClass = 'block text-sm font-medium text-stone-700'
+
 export function TelegramConnectCard({
   telegramChatId,
   connectUrl,
@@ -10,13 +12,11 @@ export function TelegramConnectCard({
   const connected = !!telegramChatId
 
   return (
-    <section className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
+    <div className="space-y-3">
       <div>
-        <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
-          Telegram notifications
-        </h2>
-        <p className="text-stone-500 text-sm mt-1">
-          Get new order alerts with Accept and Decline buttons in Telegram.
+        <p className={labelClass}>Telegram (optional)</p>
+        <p className="text-stone-400 text-xs mt-1">
+          Secondary channel — Accept and Decline buttons in Telegram.
         </p>
       </div>
 
@@ -46,6 +46,6 @@ export function TelegramConnectCard({
           finish connecting.
         </p>
       )}
-    </section>
+    </div>
   )
 }
