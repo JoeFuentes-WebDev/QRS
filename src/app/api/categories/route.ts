@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getDefaultSeller, getSellerBySlug } from '@/lib/seller'
+import { storefrontProductWhere } from '@/lib/shop-product'
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const products = await prisma.product.findMany({
-      where: { sellerId: seller.id, inStock: true },
+      where: { sellerId: seller.id, ...storefrontProductWhere },
       select: { category: true, tags: true },
     })
 

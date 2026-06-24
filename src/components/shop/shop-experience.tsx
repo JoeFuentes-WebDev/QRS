@@ -5,29 +5,28 @@ import { useSearchParams } from 'next/navigation'
 import { SwipeCard } from '@/components/shop/SwipeCard'
 import { OnboardingScreen, useOnboarding } from '@/components/shop/Onboardingscreen'
 import { FavoritesSummary } from '@/components/shop/FavoritesSummary'
+import { HeroBackground, type StorefrontHeroImage } from '@/components/shop/hero-background'
 import { loadCart, saveCart, clearCart } from '@/lib/shop-cart'
 import type { Product, FavoriteItem } from '@/types'
 
 type Phase = 'prompt' | 'swipe' | 'summary'
 
-type HeroImage = {
-  id: string
-  imageUrl: string
-  alt?: string | null
-}
-
 type Props = {
   slug: string
+  sellerId: string
   storeName: string
+  paymentsEnabled: boolean
   initialPills: string[]
-  initialHeroImages: HeroImage[]
+  heroImages: StorefrontHeroImage[]
 }
 
 export function ShopExperience({
   slug,
+  sellerId,
   storeName,
+  paymentsEnabled,
   initialPills,
-  initialHeroImages,
+  heroImages,
 }: Props) {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q')
@@ -42,10 +41,6 @@ export function ShopExperience({
   const [searchQuery, setSearchQuery] = useState('')
   const [pills, setPills] = useState<string[]>(initialPills)
   const [activeFilter, setActiveFilter] = useState<string>('')
-  const [heroImages, setHeroImages] = useState<HeroImage[]>(initialHeroImages)
-  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(
-    initialHeroImages[0]?.imageUrl ?? null
-  )
   const didAutoSearch = useRef(false)
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding()
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -62,26 +57,6 @@ export function ShopExperience({
   }, [slug, favorites])
 
   useEffect(() => {
-    if (heroImages.length <= 1) return
-    let idx = 0
-    const interval = setInterval(() => {
-      idx = (idx + 1) % heroImages.length
-      setHeroImageUrl(heroImages[idx]?.imageUrl ?? null)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [heroImages])
-
-  useEffect(() => {
-    fetch(`/api/hero?slug=${encodeURIComponent(slug)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setHeroImages(data)
-          setHeroImageUrl(data[0].imageUrl)
-        }
-      })
-      .catch(() => {})
-
     fetch(`/api/categories?slug=${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((data) => {
@@ -194,21 +169,7 @@ export function ShopExperience({
     <main className="min-h-screen bg-stone-50 flex flex-col">
       {phase === 'prompt' && (
         <div className="relative flex flex-col items-center justify-center flex-1 gap-8 px-6 py-12 overflow-hidden">
-          {heroImageUrl && (
-            <>
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage: `url(${heroImageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: 'blur(20px) brightness(0.85) saturate(0.6)',
-                  transform: 'scale(1.1)',
-                }}
-              />
-              <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-            </>
-          )}
+          <HeroBackground images={heroImages} />
           <div className="relative z-10 text-center">
             <h1 className="text-4xl font-black tracking-tight text-stone-900">
               {storeName}
@@ -340,20 +301,7 @@ export function ShopExperience({
 
           <div className="flex-1 flex flex-col relative">
             {showOnboarding && <OnboardingScreen onDismiss={dismissOnboarding} />}
-            {heroImageUrl ? (
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage: `url(${heroImageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: 'blur(20px) brightness(0.85) saturate(0.6)',
-                  transform: 'scale(1.1)',
-                }}
-              />
-            ) : (
-              <div className="absolute inset-0 bg-stone-100 pointer-events-none" />
-            )}
+            <HeroBackground images={heroImages} />
             <SwipeCard
               product={currentProduct}
               onSwipeRight={handleSwipeRight}
@@ -378,6 +326,8 @@ export function ShopExperience({
           </div>
           <FavoritesSummary
             slug={slug}
+            sellerId={sellerId}
+            paymentsEnabled={paymentsEnabled}
             favorites={favorites}
             onReset={handleReset}
             onReviewSaved={handleReviewSaved}

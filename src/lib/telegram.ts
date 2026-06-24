@@ -1,3 +1,13 @@
+export function getTelegramBotToken(): string | null {
+  return process.env.TELEGRAM_BOT_TOKEN?.trim() || null
+}
+
+export function getTelegramConnectUrl(sellerId: string): string | null {
+  const botName = process.env.TELEGRAM_BOT_NAME?.trim()
+  if (!botName) return null
+  return `https://t.me/${botName}?start=${encodeURIComponent(sellerId)}`
+}
+
 function telegramApi(botToken: string): string {
   return `https://api.telegram.org/bot${botToken}`
 }

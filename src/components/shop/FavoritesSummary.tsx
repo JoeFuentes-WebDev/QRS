@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import type { FavoriteItem, CartItem, Product } from '@/types'
+import type { FavoriteItem, Product } from '@/types'
 import { formatPrice } from '@/lib/pricing'
 
 type Props = {
   slug: string
+  sellerId: string
+  paymentsEnabled: boolean
   favorites: FavoriteItem[]
   onReset: () => void
   onReviewSaved: (product: Product) => void
@@ -14,6 +16,8 @@ type Props = {
 
 export function FavoritesSummary({
   slug,
+  sellerId,
+  paymentsEnabled,
   favorites,
   onReset,
   onReviewSaved,
@@ -28,21 +32,23 @@ export function FavoritesSummary({
   const cartTotal = cartItems.reduce((sum, f) => sum + f.product.price, 0)
 
   const handleCheckout = async () => {
+    if (!paymentsEnabled) return
+
     setLoading(true)
     setCheckoutError(null)
     try {
-      const items: CartItem[] = cartItems.map((f) => ({
-        productId: f.product.id,
-        product: f.product,
-        quantity: 1,
-        price: f.product.price,
-      }))
-      const res = await fetch(`/api/${slug}/checkout`, {
+      const res = await fetch('/api/checkout/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          sellerId,
+          items: cartItems.map((f) => ({
+            productId: f.product.id,
+            quantity: 1,
+          })),
+        }),
       })
-      const data = await res.json()
+      const data = (await res.json()) as { url?: string; error?: string }
       if (!res.ok) {
         setCheckoutError(data.error ?? 'Checkout failed')
         return
@@ -121,11 +127,16 @@ export function FavoritesSummary({
             <p className="text-red-400 text-sm text-center mb-3">{checkoutError}</p>
           )}
           <button
+            type="button"
             onClick={handleCheckout}
-            disabled={loading}
-            className="w-full bg-white text-stone-900 font-bold py-3 rounded-xl hover:bg-stone-100 transition-colors disabled:opacity-50"
+            disabled={loading || !paymentsEnabled}
+            className="w-full bg-white text-stone-900 font-bold py-3 rounded-xl hover:bg-stone-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Redirecting...' : 'Checkout'}
+            {loading
+              ? 'Redirecting...'
+              : paymentsEnabled
+                ? 'Checkout'
+                : 'Not accepting payments yet'}
           </button>
           <p className="text-center text-stone-500 text-xs mt-3">Secure checkout via Stripe</p>
         </div>

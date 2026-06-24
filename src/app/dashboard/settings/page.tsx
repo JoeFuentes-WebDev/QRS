@@ -1,15 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getShopUrlDisplay } from '@/lib/qr'
 import { getCurrentSeller } from '@/lib/seller'
-import { SettingsForm } from '@/components/dashboard/settings-form'
-
-function fulfillmentLabel(type: string): string {
-  return type === 'TELEGRAM' ? 'Telegram + Shippo' : 'Email'
-}
+import { NotificationEmailForm } from '@/components/dashboard/notification-email-form'
 
 export default async function SettingsPage() {
   const seller = await getCurrentSeller()
   if (!seller) redirect('/onboarding')
+
+  const shopUrl = getShopUrlDisplay(seller.slug)
 
   return (
     <main className="min-h-screen bg-stone-50">
@@ -39,49 +38,57 @@ export default async function SettingsPage() {
             </div>
             <div>
               <p className="text-stone-400 text-xs uppercase tracking-wide">Shop URL</p>
-              <p className="text-stone-900 font-medium">qrs.app/{seller.slug}</p>
+              {shopUrl.type === 'warning' ? (
+                <p className="text-amber-700 font-medium mt-1">{shopUrl.text}</p>
+              ) : (
+                <p className="text-stone-900 font-medium">{shopUrl.text}</p>
+              )}
             </div>
           </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
-            Stripe configuration
+            Notifications
           </h2>
-          <SettingsForm
-            hasStripePublishableKey={!!seller.stripePublishableKey}
-            hasStripeSecretKey={!!seller.stripeSecretKey}
-            hasStripeWebhookSecret={!!seller.stripeWebhookSecret}
-          />
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <NotificationEmailForm defaultEmail={seller.notificationEmail} />
+          </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
-            Notification preference
+            Payments
           </h2>
           <div className="bg-white rounded-2xl p-4 shadow-sm text-sm">
             <p className="text-stone-900 font-medium">
-              {fulfillmentLabel(seller.fulfillmentType)}
+              {seller.stripeConnectOnboarded
+                ? 'Stripe Connect active'
+                : 'Stripe Connect not set up'}
             </p>
-            <p className="text-stone-400 text-xs mt-2">
-              Edit notification settings —{' '}
-              <span className="italic">Coming soon</span>
+            <p className="text-stone-500 text-xs mt-2">
+              {seller.stripeConnectOnboarded
+                ? 'Payments are enabled on your shop.'
+                : 'Connect Stripe to accept payments.'}{' '}
+              <Link href="/dashboard" className="text-stone-900 underline">
+                Go to dashboard
+              </Link>
             </p>
           </div>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
-            Custom domain
+            Shipping
           </h2>
-          <div>
-            <input
-              type="text"
-              disabled
-              placeholder="yourdomain.com"
-              className="w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-400 text-sm bg-stone-100 cursor-not-allowed"
-            />
-            <p className="text-stone-400 text-xs mt-1">Custom domain — coming soon</p>
+          <div className="bg-white rounded-2xl p-4 shadow-sm text-sm space-y-2">
+            <p className="text-stone-900">
+              Shipping is included in your product price. When setting prices, make
+              sure to account for your shipping costs.
+            </p>
+            <p className="text-stone-400 text-xs">
+              Automatic shipping rate calculation is coming soon.
+            </p>
           </div>
         </section>
       </div>

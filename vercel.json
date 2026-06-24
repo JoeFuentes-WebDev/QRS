@@ -1,12 +1,8 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/orders",
-      "schedule": "0 0 1 * *"
-    },
-    {
-      "path": "/api/cron/reset-order-counts",
-      "schedule": "0 0 1 * *"
+  "functions": {
+    "src/app/api/postcard/route.ts": {
+      "memory": 3008,
+      "maxDuration": 30
     }
-  ]
+  }
 }

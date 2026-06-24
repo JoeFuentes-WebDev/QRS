@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getDefaultSeller, getSellerBySlug } from '@/lib/seller'
+import { mapProductForShop, storefrontProductWhere } from '@/lib/shop-product'
 
 function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('x-admin-secret') === process.env.ADMIN_SECRET
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
     const products = await prisma.product.findMany({
       where: {
         sellerId: seller.id,
-        ...(all ? {} : { inStock: true }),
+        ...(all ? {} : storefrontProductWhere),
         ...(category ? { category } : {}),
         ...(query
           ? {
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json(products)
+    return NextResponse.json(products.map(mapProductForShop))
   } catch (error) {
     console.error('Products fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
