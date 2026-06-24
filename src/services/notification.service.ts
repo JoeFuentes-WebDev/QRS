@@ -3,6 +3,7 @@ import {
   getTelegramBotToken,
   sendTelegramMessageWithButtons,
 } from '@/lib/telegram'
+import { sendSms } from '@/lib/twilio'
 import { computeOrderTotalCents } from '@/services/order.service'
 
 type NotifyOrderItem = {
@@ -21,6 +22,7 @@ type NotifySellerNewOrderParams = {
     notificationEmail: string
     storeName: string
     telegramChatId: string | null
+    sellerPhone: string | null
   }
 }
 
@@ -31,10 +33,39 @@ function formatCents(cents: number): string {
   }).format(cents / 100)
 }
 
+function formatDollars(cents: number): string {
+  return (cents / 100).toFixed(2)
+}
+
 function buildItemLines(items: NotifyOrderItem[]): string {
   return items
     .map((item) => `• ${item.product.name} × ${item.quantity}`)
     .join('\n')
+}
+
+function buildSmsItemSummary(items: NotifyOrderItem[]): {
+  quantity: number
+  productName: string
+} {
+  if (items.length === 0) {
+    return { quantity: 0, productName: 'items' }
+  }
+
+  const first = items[0]
+  if (items.length === 1) {
+    return { quantity: first.quantity, productName: first.product.name }
+  }
+
+  const extraCount = items.length - 1
+  return {
+    quantity: first.quantity,
+    productName: `${first.product.name} +${extraCount} more`,
+  }
+}
+
+function getAppUrl(): string | null {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, '')
+  return appUrl || null
 }
 
 async function sendSellerOrderEmail(
@@ -90,6 +121,29 @@ async function sendSellerOrderEmail(
   })
 }
 
+async function sendSellerOrderSms(
+  params: NotifySellerNewOrderParams,
+  totalCents: number
+): Promise<void> {
+  const phone = params.seller.sellerPhone?.trim()
+  if (!phone) {
+    return
+  }
+
+  const appUrl = getAppUrl()
+  if (!appUrl) {
+    return
+  }
+
+  const { quantity, productName } = buildSmsItemSummary(params.order.items)
+  const body = [
+    `New order on QRS! ${params.seller.storeName} — ${quantity}x ${productName}, $${formatDollars(totalCents)}.`,
+    `View: ${appUrl}/dashboard/orders/${params.order.id}`,
+  ].join(' ')
+
+  await sendSms(phone, body)
+}
+
 async function sendSellerOrderTelegram(
   params: NotifySellerNewOrderParams,
   totalCents: number
@@ -126,6 +180,12 @@ export async function notifySellerNewOrder(
     await sendSellerOrderEmail(params, totalCents)
   } catch (error) {
     console.error('Seller order notification email failed:', error)
+  }
+
+  try {
+    await sendSellerOrderSms(params, totalCents)
+  } catch (error) {
+    console.error('Seller order notification SMS failed:', error)
   }
 
   try {

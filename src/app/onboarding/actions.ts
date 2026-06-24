@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUserEmail } from '@/lib/seller'
+import { isValidUsPhone, normalizeUsPhone } from '@/lib/phone'
 import { isValidSlug } from '@/lib/slug'
 import { trackSellerEvent } from '@/services/analytics.service'
 
@@ -40,6 +41,7 @@ export async function createSeller(
   const storeName = (formData.get('storeName') as string)?.trim()
   const slug = (formData.get('slug') as string)?.trim()
   const notificationEmail = (formData.get('notificationEmail') as string)?.trim()
+  const rawPhone = (formData.get('sellerPhone') as string)?.trim() ?? ''
 
   const fieldErrors: Record<string, string> = {}
 
@@ -50,6 +52,9 @@ export async function createSeller(
     fieldErrors.notificationEmail = 'Notification email is required.'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)) {
     fieldErrors.notificationEmail = 'Enter a valid email address.'
+  }
+  if (!isValidUsPhone(rawPhone)) {
+    fieldErrors.sellerPhone = 'Enter a valid US phone number, e.g. (555) 555-5555.'
   }
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -72,6 +77,7 @@ export async function createSeller(
       storeName,
       slug,
       notificationEmail,
+      sellerPhone: normalizeUsPhone(rawPhone),
     },
   })
 

@@ -29,6 +29,16 @@ export async function updateSellerNotificationEmail(
   })
 }
 
+export async function updateSellerPhone(
+  sellerId: string,
+  sellerPhone: string | null
+) {
+  return prisma.seller.update({
+    where: { id: sellerId },
+    data: { sellerPhone },
+  })
+}
+
 export async function getSellerById(sellerId: string) {
   return prisma.seller.findUnique({
     where: { id: sellerId },
