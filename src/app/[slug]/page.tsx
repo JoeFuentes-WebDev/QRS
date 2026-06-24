@@ -2,7 +2,9 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSellerBySlug } from '@/lib/seller'
+import { storefrontProductWhere } from '@/lib/shop-product'
 import { ShopExperience } from '@/components/shop/shop-experience'
+import { listHeroImagesForSeller } from '@/services/hero.service'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -13,21 +15,14 @@ export default async function ShopPage({ params }: Props) {
   const seller = await getSellerBySlug(slug)
   if (!seller) notFound()
 
-  const [inStockCount, products, heroImages] = await Promise.all([
-    prisma.product.count({
-      where: { sellerId: seller.id, inStock: true },
-    }),
-    prisma.product.findMany({
-      where: { sellerId: seller.id, inStock: true },
-      select: { category: true, tags: true },
-    }),
-    prisma.heroImage.findMany({
-      where: { sellerId: seller.id, active: true },
-      orderBy: { order: 'asc' },
-    }),
-  ])
+  const products = await prisma.product.findMany({
+    where: { sellerId: seller.id, ...storefrontProductWhere },
+    select: { category: true, tags: true },
+  })
 
-  if (inStockCount === 0) {
+  const heroImages = await listHeroImagesForSeller(seller.id)
+
+  if (products.length === 0) {
     return (
       <main className="min-h-screen bg-stone-50 flex items-center justify-center px-6">
         <div className="text-center max-w-sm">
@@ -60,9 +55,14 @@ export default async function ShopPage({ params }: Props) {
     <Suspense>
       <ShopExperience
         slug={slug}
+        sellerId={seller.id}
         storeName={seller.storeName}
+        paymentsEnabled={seller.stripeConnectOnboarded}
         initialPills={pills}
-        initialHeroImages={heroImages}
+        heroImages={heroImages.map((image) => ({
+          id: image.id,
+          url: image.url,
+        }))}
       />
     </Suspense>
   )

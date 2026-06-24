@@ -4,10 +4,8 @@ const prisma = new PrismaClient()
 
 const TEST_SELLER = {
   clerkUserId: 'seed-test-placeholder',
-  email: 'test@qrs.dev',
   storeName: 'Test Shop',
   slug: 'test-seller',
-  fulfillmentType: 'EMAIL' as const,
   notificationEmail: 'test@qrs.dev',
 }
 
@@ -16,7 +14,6 @@ async function main() {
     where: { slug: TEST_SELLER.slug },
     update: {
       storeName: TEST_SELLER.storeName,
-      email: TEST_SELLER.email,
       notificationEmail: TEST_SELLER.notificationEmail,
     },
     create: TEST_SELLER,

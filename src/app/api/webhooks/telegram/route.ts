@@ -1,58 +1,138 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { answerCallbackQuery } from '@/lib/telegram'
 import {
-  confirmTelegramOrder,
-  cancelTelegramOrder,
-  type OrderWithItems,
-} from '@/lib/fulfillment'
+  answerCallbackQuery,
+  getTelegramBotToken,
+  sendTelegramMessage,
+} from '@/lib/telegram'
+import { trackSellerEvent } from '@/services/analytics.service'
+import { updateOrderStatus } from '@/services/order.service'
+import {
+  getSellerById,
+  getSellerByTelegramChatId,
+  updateSellerTelegramChatId,
+} from '@/services/seller.service'
 
-async function loadOrder(orderId: string): Promise<OrderWithItems | null> {
-  return prisma.order.findFirst({
-    where: { id: orderId },
-    include: { orderItems: { include: { product: true } } },
-  })
+type TelegramUpdate = {
+  message?: {
+    text?: string
+    chat: { id: number }
+  }
+  callback_query?: {
+    id: string
+    data?: string
+    message?: {
+      chat: { id: number }
+    }
+  }
 }
 
-export async function POST(req: NextRequest) {
+function parseStartSellerId(text: string): string | null {
+  const match = text.match(/^\/start(?:@\w+)?(?:\s+(.+))?$/)
+  return match?.[1]?.trim() || null
+}
+
+function parseOrderCallback(data: string): { action: 'accept' | 'decline'; orderId: string } | null {
+  const match = data.match(/^order:(accept|decline):(.+)$/)
+  if (!match) return null
+  return { action: match[1] as 'accept' | 'decline', orderId: match[2] }
+}
+
+async function handleStartCommand(chatId: string, text: string): Promise<void> {
+  const botToken = getTelegramBotToken()
+  if (!botToken) return
+
+  const sellerId = parseStartSellerId(text)
+  if (!sellerId) {
+    await sendTelegramMessage(
+      botToken,
+      chatId,
+      'Open the Connect Telegram link from your QRS dashboard to link this chat.'
+    )
+    return
+  }
+
+  const seller = await getSellerById(sellerId)
+  if (!seller) {
+    await sendTelegramMessage(botToken, chatId, 'Invalid connect link. Generate a new one from your dashboard.')
+    return
+  }
+
+  await updateSellerTelegramChatId(seller.id, chatId)
+  await sendTelegramMessage(
+    botToken,
+    chatId,
+    `<b>Connected to ${seller.storeName}</b>\n\nYou will receive new order notifications here with Accept and Decline buttons.`
+  )
+}
+
+async function handleOrderCallback(
+  callbackQueryId: string,
+  chatId: string,
+  data: string
+): Promise<void> {
+  const botToken = getTelegramBotToken()
+  if (!botToken) return
+
+  const parsed = parseOrderCallback(data)
+  if (!parsed) {
+    await answerCallbackQuery(botToken, callbackQueryId, 'Unknown action')
+    return
+  }
+
+  const seller = await getSellerByTelegramChatId(chatId)
+  if (!seller) {
+    await answerCallbackQuery(botToken, callbackQueryId, 'Telegram not connected')
+    return
+  }
+
+  const newStatus = parsed.action === 'accept' ? 'ACCEPTED' : 'DECLINED'
+  const result = await updateOrderStatus(parsed.orderId, seller.id, newStatus, ['PENDING'])
+
+  if (result.kind === 'not_found') {
+    await answerCallbackQuery(botToken, callbackQueryId, 'Order not found')
+    return
+  }
+  if (result.kind === 'forbidden') {
+    await answerCallbackQuery(botToken, callbackQueryId, 'Not your order')
+    return
+  }
+  if (result.kind === 'conflict') {
+    await answerCallbackQuery(botToken, callbackQueryId, 'Order already processed')
+    return
+  }
+
+  if (parsed.action === 'accept') {
+    void trackSellerEvent(seller.clerkUserId, 'order.accepted')
+    await answerCallbackQuery(botToken, callbackQueryId, 'Order accepted')
+  } else {
+    void trackSellerEvent(seller.clerkUserId, 'order.declined')
+    await answerCallbackQuery(botToken, callbackQueryId, 'Order declined')
+  }
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  if (!getTelegramBotToken()) {
+    return NextResponse.json({ ok: true })
+  }
+
+  let update: TelegramUpdate
   try {
-    const update = await req.json()
+    update = (await req.json()) as TelegramUpdate
+  } catch {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  }
 
-    if (update.callback_query) {
-      const callbackQuery = update.callback_query
-      const chatId = String(callbackQuery.message.chat.id)
-      const data = callbackQuery.data as string
+  try {
+    if (update.message?.text?.startsWith('/start')) {
+      await handleStartCommand(String(update.message.chat.id), update.message.text)
+    }
 
-      const [action, orderId] = data.split(':')
-      if (!orderId || (action !== 'YES' && action !== 'NO')) {
-        return NextResponse.json({ ok: true })
-      }
-
-      const order = await loadOrder(orderId)
-      if (!order) {
-        return NextResponse.json({ ok: true })
-      }
-
-      const seller = await prisma.seller.findUnique({
-        where: { id: order.sellerId },
-      })
-      if (!seller?.telegramBotToken) {
-        return NextResponse.json({ ok: true })
-      }
-
-      await answerCallbackQuery(seller.telegramBotToken, callbackQuery.id)
-
-      if (order.status !== 'PENDING') {
-        return NextResponse.json({ ok: true })
-      }
-
-      if (action === 'YES') {
-        await confirmTelegramOrder(order, seller, chatId)
-      } else {
-        await cancelTelegramOrder(order, seller, chatId)
-      }
-
-      return NextResponse.json({ ok: true })
+    if (update.callback_query?.data && update.callback_query.message) {
+      await handleOrderCallback(
+        update.callback_query.id,
+        String(update.callback_query.message.chat.id),
+        update.callback_query.data
+      )
     }
   } catch (error) {
     console.error('Telegram webhook error:', error)

@@ -1,17 +1,9 @@
 import Stripe from 'stripe'
-import type { Seller } from '@prisma/client'
 
-export function sellerHasStripeConfigured(seller: Seller): boolean {
-  return !!(
-    seller.stripeSecretKey?.trim() &&
-    seller.stripePublishableKey?.trim() &&
-    seller.stripeWebhookSecret?.trim()
-  )
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is not set')
 }
 
-export function getStripeClient(seller: Seller): Stripe {
-  if (!seller.stripeSecretKey?.trim()) {
-    throw new Error('This shop is not accepting payments yet.')
-  }
-  return new Stripe(seller.stripeSecretKey)
-}
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2026-04-22.dahlia',
+})

@@ -90,3 +90,30 @@ export async function deleteCloudinaryImage(publicId: string): Promise<void> {
 }
 
 export { cloudinary }
+
+export type CloudinarySignPayload = {
+  signature: string
+  timestamp: number
+  cloudName: string
+  apiKey: string
+  folder: string
+}
+
+export function createUploadSignature(folder: string): CloudinarySignPayload {
+  assertCloudinaryConfigured()
+
+  const timestamp = Math.round(Date.now() / 1000)
+  const params = { timestamp, folder }
+  const signature = cloudinary.utils.api_sign_request(
+    params,
+    process.env.CLOUDINARY_API_SECRET!
+  )
+
+  return {
+    signature,
+    timestamp,
+    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!.trim(),
+    apiKey: process.env.CLOUDINARY_API_KEY!.trim(),
+    folder,
+  }
+}

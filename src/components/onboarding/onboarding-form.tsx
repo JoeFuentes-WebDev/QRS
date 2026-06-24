@@ -7,12 +7,11 @@ import {
   type OnboardingFormState,
 } from '@/app/onboarding/actions'
 import { slugifyStoreName } from '@/lib/slug'
+import { getShopUrlDisplay } from '@/lib/qr'
 
 const inputClass =
   'w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-stone-800 transition-colors'
 const labelClass = 'block text-sm font-medium text-stone-700 mb-1'
-
-type FulfillmentChoice = 'EMAIL' | 'TELEGRAM'
 
 export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
   const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
@@ -24,7 +23,6 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
   const [slugTouched, setSlugTouched] = useState(false)
   const [slugError, setSlugError] = useState<string | null>(null)
   const [slugChecking, setSlugChecking] = useState(false)
-  const [fulfillmentType, setFulfillmentType] = useState<FulfillmentChoice>('EMAIL')
 
   const handleStoreNameChange = (value: string) => {
     setStoreName(value)
@@ -42,6 +40,8 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
   }
 
   const fieldError = (name: string) => state.fieldErrors?.[name]
+
+  const shopUrlPreview = getShopUrlDisplay(slug)
 
   return (
     <form action={formAction} className="space-y-8">
@@ -93,7 +93,11 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
             placeholder="my-shop"
           />
           <p className="text-stone-400 text-sm mt-1">
-            qrs.app/{slug || 'your-slug'}
+            {shopUrlPreview.type === 'warning' ? (
+              <span className="text-amber-700">{shopUrlPreview.text}</span>
+            ) : (
+              shopUrlPreview.text
+            )}
             {slugChecking && ' — checking…'}
           </p>
           {(slugError || fieldError('slug')) && (
@@ -102,189 +106,24 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
         </div>
 
         <div>
-          <label htmlFor="phone" className={labelClass}>
-            Phone number
+          <label htmlFor="notificationEmail" className={labelClass}>
+            Notification email
           </label>
           <input
-            id="phone"
-            name="phone"
-            type="tel"
+            id="notificationEmail"
+            name="notificationEmail"
+            type="email"
             required
+            defaultValue={defaultEmail}
             className={inputClass}
-            placeholder="(555) 123-4567"
           />
-          {fieldError('phone') && (
-            <p className="text-red-400 text-sm mt-1">{fieldError('phone')}</p>
+          <p className="text-stone-400 text-sm mt-1">
+            Order notifications will be sent here.
+          </p>
+          {fieldError('notificationEmail') && (
+            <p className="text-red-400 text-sm mt-1">{fieldError('notificationEmail')}</p>
           )}
         </div>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-bold text-stone-900">Order notifications</h2>
-
-        <div className="flex gap-3">
-          <label className="flex-1 cursor-pointer">
-            <input
-              type="radio"
-              name="fulfillmentType"
-              value="EMAIL"
-              checked={fulfillmentType === 'EMAIL'}
-              onChange={() => setFulfillmentType('EMAIL')}
-              className="sr-only"
-            />
-            <span
-              className={`block text-center rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors ${
-                fulfillmentType === 'EMAIL'
-                  ? 'border-stone-900 bg-stone-900 text-white'
-                  : 'border-stone-200 text-stone-600 hover:border-stone-400'
-              }`}
-            >
-              Email
-            </span>
-          </label>
-          <label className="flex-1 cursor-pointer">
-            <input
-              type="radio"
-              name="fulfillmentType"
-              value="TELEGRAM"
-              checked={fulfillmentType === 'TELEGRAM'}
-              onChange={() => setFulfillmentType('TELEGRAM')}
-              className="sr-only"
-            />
-            <span
-              className={`block text-center rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors ${
-                fulfillmentType === 'TELEGRAM'
-                  ? 'border-stone-900 bg-stone-900 text-white'
-                  : 'border-stone-200 text-stone-600 hover:border-stone-400'
-              }`}
-            >
-              Telegram + Shippo
-            </span>
-          </label>
-        </div>
-        {fieldError('fulfillmentType') && (
-          <p className="text-red-400 text-sm">{fieldError('fulfillmentType')}</p>
-        )}
-
-        {fulfillmentType === 'EMAIL' && (
-          <div>
-            <label htmlFor="notificationEmail" className={labelClass}>
-              Notification email
-            </label>
-            <input
-              id="notificationEmail"
-              name="notificationEmail"
-              type="email"
-              required
-              defaultValue={defaultEmail}
-              className={inputClass}
-            />
-            {fieldError('notificationEmail') && (
-              <p className="text-red-400 text-sm mt-1">{fieldError('notificationEmail')}</p>
-            )}
-          </div>
-        )}
-
-        {fulfillmentType === 'TELEGRAM' && (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="telegramBotToken" className={labelClass}>
-                Telegram bot token
-              </label>
-              <input
-                id="telegramBotToken"
-                name="telegramBotToken"
-                type="password"
-                className={inputClass}
-                autoComplete="off"
-              />
-              {fieldError('telegramBotToken') && (
-                <p className="text-red-400 text-sm mt-1">{fieldError('telegramBotToken')}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="shippoApiKey" className={labelClass}>
-                Shippo API key
-              </label>
-              <input
-                id="shippoApiKey"
-                name="shippoApiKey"
-                type="password"
-                className={inputClass}
-                autoComplete="off"
-              />
-              {fieldError('shippoApiKey') && (
-                <p className="text-red-400 text-sm mt-1">{fieldError('shippoApiKey')}</p>
-              )}
-            </div>
-
-            <p className="text-sm font-medium text-stone-700">Origin address</p>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <input
-                  name="shippoFromName"
-                  placeholder="Name"
-                  className={inputClass}
-                />
-                {fieldError('shippoFromName') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromName')}</p>
-                )}
-              </div>
-              <div className="col-span-2">
-                <input
-                  name="shippoFromStreet"
-                  placeholder="Street"
-                  className={inputClass}
-                />
-                {fieldError('shippoFromStreet') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromStreet')}</p>
-                )}
-              </div>
-              <div>
-                <input name="shippoFromCity" placeholder="City" className={inputClass} />
-                {fieldError('shippoFromCity') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromCity')}</p>
-                )}
-              </div>
-              <div>
-                <input name="shippoFromState" placeholder="State" className={inputClass} />
-                {fieldError('shippoFromState') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromState')}</p>
-                )}
-              </div>
-              <div>
-                <input name="shippoFromZip" placeholder="ZIP" className={inputClass} />
-                {fieldError('shippoFromZip') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromZip')}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  name="shippoFromEmail"
-                  type="email"
-                  placeholder="Email"
-                  className={inputClass}
-                />
-                {fieldError('shippoFromEmail') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromEmail')}</p>
-                )}
-              </div>
-              <div className="col-span-2">
-                <input
-                  name="shippoFromPhone"
-                  type="tel"
-                  placeholder="Phone"
-                  className={inputClass}
-                />
-                {fieldError('shippoFromPhone') && (
-                  <p className="text-red-400 text-sm mt-1">{fieldError('shippoFromPhone')}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </section>
 
       <button

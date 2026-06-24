@@ -1,126 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
-import { prisma } from '@/lib/prisma'
-import { getStripeClient } from '@/lib/stripe'
+import { trackSellerEvent } from '@/services/analytics.service'
 import {
-  routeFulfillment,
-  decrementProductQuantities,
-  type OrderWithItems,
-} from '@/lib/fulfillment'
-import { logThresholdCrossed } from '@/lib/freemium'
+  constructStripeWebhookEvent,
+  getCheckoutSessionLineItems,
+} from '@/services/checkout.service'
+import { sendBuyerOrderConfirmation } from '@/services/email.service'
+import { notifySellerNewOrder } from '@/services/notification.service'
+import {
+  createOrderFromCheckout,
+  orderExistsByStripeSessionId,
+} from '@/services/order.service'
 
-type CheckoutMetadata = {
-  sellerId?: string
-  items?: string
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.text()
-  const sig = req.headers.get('stripe-signature')
+  const signature = req.headers.get('stripe-signature')
 
-  if (!sig) {
+  if (!signature) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
   }
 
-  let unverified: Stripe.Event
+  let event: Stripe.Event
   try {
-    unverified = JSON.parse(body) as Stripe.Event
-  } catch {
-    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    event = constructStripeWebhookEvent(body, signature)
+  } catch (error) {
+    console.error('Webhook signature verification failed:', error)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  if (unverified.type !== 'checkout.session.completed') {
+  if (event.type !== 'checkout.session.completed') {
     return NextResponse.json({ received: true })
   }
 
-  const session = unverified.data.object as Stripe.Checkout.Session
+  const session = event.data.object as Stripe.Checkout.Session
   const sellerId = session.metadata?.sellerId
 
   if (!sellerId) {
     return NextResponse.json({ error: 'Missing sellerId in metadata' }, { status: 400 })
   }
 
-  const seller = await prisma.seller.findUnique({ where: { id: sellerId } })
-  if (!seller?.stripeWebhookSecret) {
-    return NextResponse.json({ error: 'Seller webhook secret not found' }, { status: 400 })
-  }
-
-  let event: Stripe.Event
   try {
-    const stripe = getStripeClient(seller)
-    event = stripe.webhooks.constructEvent(body, sig, seller.stripeWebhookSecret)
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err)
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const completedSession = event.data.object as Stripe.Checkout.Session
-
-    try {
-      const metadata = completedSession.metadata as CheckoutMetadata
-      const items = JSON.parse(metadata.items ?? '[]') as Array<{
-        productId: string
-        quantity: number
-        price: number
-      }>
-
-      const buyerName = completedSession.customer_details?.name ?? 'Customer'
-      const buyerEmail = completedSession.customer_details?.email ?? ''
-      const address = completedSession.customer_details?.address
-
-      const existing = await prisma.order.findUnique({
-        where: { stripeSessionId: completedSession.id },
-      })
-      if (existing) {
-        return NextResponse.json({ received: true })
-      }
-
-      const order = await prisma.order.create({
-        data: {
-          sellerId: seller.id,
-          stripeSessionId: completedSession.id,
-          stripePaymentIntent:
-            typeof completedSession.payment_intent === 'string'
-              ? completedSession.payment_intent
-              : completedSession.payment_intent?.id,
-          buyerName,
-          buyerEmail,
-          shippingName: buyerName,
-          shippingStreet: address?.line1 ?? undefined,
-          shippingCity: address?.city ?? undefined,
-          shippingState: address?.state ?? undefined,
-          shippingZip: address?.postal_code ?? undefined,
-          shippingCountry: address?.country ?? undefined,
-          status: 'PENDING',
-          total: (completedSession.amount_total ?? 0) / 100,
-          orderItems: {
-            create: items.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.price,
-            })),
-          },
-        },
-        include: { orderItems: { include: { product: true } } },
-      })
-
-      await decrementProductQuantities(order.orderItems, seller.id)
-
-      const updatedSeller = await prisma.seller.update({
-        where: { id: seller.id },
-        data: { monthlyOrderCount: { increment: 1 } },
-      })
-
-      if (updatedSeller.monthlyOrderCount === 21) {
-        logThresholdCrossed(updatedSeller.id, updatedSeller.storeName)
-      }
-
-      await routeFulfillment(order as OrderWithItems, seller)
-    } catch (error) {
-      console.error('Order processing error:', error)
-      return NextResponse.json({ error: 'Order processing failed' }, { status: 500 })
+    if (await orderExistsByStripeSessionId(session.id)) {
+      return NextResponse.json({ received: true })
     }
+
+    const buyerEmail = session.customer_details?.email?.trim()
+    if (!buyerEmail) {
+      return NextResponse.json({ error: 'Missing buyer email' }, { status: 400 })
+    }
+
+    const lineItems = await getCheckoutSessionLineItems(session.id)
+    const stripePaymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : (session.payment_intent?.id ?? null)
+
+    const order = await createOrderFromCheckout({
+      sellerId,
+      stripeSessionId: session.id,
+      stripePaymentIntentId,
+      buyerEmail,
+      lineItems,
+    })
+
+    const totalCents = lineItems.reduce(
+      (sum, line) => sum + line.unitAmountCents * line.quantity,
+      0
+    )
+
+    void sendBuyerOrderConfirmation({
+      to: buyerEmail,
+      storeName: order.seller.storeName,
+      items: lineItems.map((line) => ({
+        name: line.name,
+        quantity: line.quantity,
+        unitPriceCents: line.unitAmountCents,
+      })),
+      totalCents,
+    })
+
+    void notifySellerNewOrder({
+      order,
+      seller: {
+        notificationEmail: order.seller.notificationEmail,
+        storeName: order.seller.storeName,
+        telegramChatId: order.seller.telegramChatId,
+      },
+    })
+
+    void trackSellerEvent(order.seller.clerkUserId, 'order.placed')
+  } catch (error) {
+    console.error('Order processing error:', error)
+    return NextResponse.json({ error: 'Order processing failed' }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })

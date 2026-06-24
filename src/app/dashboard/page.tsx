@@ -1,8 +1,17 @@
 import { redirect } from 'next/navigation'
-import { getCurrentSeller } from '@/lib/seller'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { DashboardShell } from '@/components/dashboard/dashboard-shell'
-import type { Product } from '@/types'
+import { getCurrentSeller } from '@/lib/seller'
+import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { HeroManager } from '@/components/dashboard/hero-manager'
+import { StripeConnectCard } from '@/components/dashboard/StripeConnectCard'
+import { TelegramConnectCard } from '@/components/dashboard/TelegramConnectCard'
+import {
+  PostcardDownload,
+  type PostcardImageOption,
+} from '@/components/dashboard/postcard-download'
+import { getTelegramConnectUrl } from '@/lib/telegram'
+import { listHeroImagesForSeller } from '@/services/hero.service'
 
 export default async function DashboardPage() {
   const seller = await getCurrentSeller()
@@ -10,28 +19,64 @@ export default async function DashboardPage() {
 
   const [products, heroImages] = await Promise.all([
     prisma.product.findMany({
-      where: { sellerId: seller.id },
-      orderBy: { createdAt: 'desc' },
+      where: { sellerId: seller.id, published: true },
+      select: { name: true, images: true },
+      orderBy: { createdAt: 'asc' },
     }),
-    prisma.heroImage.findMany({
-      where: { sellerId: seller.id, active: true },
-      orderBy: { order: 'asc' },
-    }),
+    listHeroImagesForSeller(seller.id),
   ])
 
-  const serializedProducts: Product[] = products.map((p) => ({
-    ...p,
-    createdAt: p.createdAt.toISOString(),
-    updatedAt: p.updatedAt.toISOString(),
-  }))
+  const imageOptions: PostcardImageOption[] = products.flatMap((product) =>
+    product.images.map((url, index) => ({
+      url,
+      label:
+        product.images.length > 1
+          ? `${product.name} (image ${index + 1})`
+          : product.name,
+    }))
+  )
+
+  const telegramConnectUrl = getTelegramConnectUrl(seller.id)
 
   return (
-    <DashboardShell
-      storeName={seller.storeName}
-      slug={seller.slug}
-      monthlyOrderCount={seller.monthlyOrderCount}
-      products={serializedProducts}
-      heroImages={heroImages}
-    />
+    <main className="min-h-screen bg-stone-50 flex flex-col">
+      <DashboardHeader storeName={seller.storeName} />
+
+      <div className="flex-1 p-6">
+        <div className="max-w-lg mx-auto space-y-6">
+          <StripeConnectCard
+            stripeConnectOnboarded={seller.stripeConnectOnboarded}
+            stripeConnectAccountId={seller.stripeConnectAccountId}
+          />
+
+          <TelegramConnectCard
+            telegramChatId={seller.telegramChatId}
+            connectUrl={telegramConnectUrl}
+          />
+
+          <Link
+            href="/dashboard/orders"
+            className="block bg-white rounded-2xl p-6 shadow-sm hover:bg-stone-50 transition-colors"
+          >
+            <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+              Orders
+            </h2>
+            <p className="text-stone-500 text-sm mt-1">
+              View and manage customer orders
+            </p>
+          </Link>
+
+          <HeroManager
+            initialImages={heroImages.map((image) => ({
+              id: image.id,
+              url: image.url,
+              order: image.order,
+            }))}
+          />
+
+          <PostcardDownload slug={seller.slug} imageOptions={imageOptions} />
+        </div>
+      </div>
+    </main>
   )
 }
