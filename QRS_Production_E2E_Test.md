@@ -10,7 +10,7 @@
 - [ ] Have your real credit card ready (or a prepaid card)
 - [ ] Open two browser windows: one normal, one incognito
 - [ ] Have Stripe dashboard open in a third tab (dashboard.stripe.com)
-- [ ] Have Telegram open on your phone
+- [ ] Have your phone nearby (for SMS notification test)
 - [ ] Have access to your notification email (soccer@joefuentes.com)
 
 ---
@@ -26,6 +26,7 @@ In the **normal browser window:**
   - [ ] Store name: `E2E Test Shop`
   - [ ] Slug: `e2e-test-shop`
   - [ ] Notification email: your email
+  - [ ] Mobile number for order alerts: your real phone number (for SMS test)
 - [ ] Confirm you land on `/dashboard`
 - [ ] Confirm welcome message shows store name (not hardcoded "Laura's Pots")
 
@@ -49,7 +50,7 @@ In the **normal browser window:**
 - [ ] Confirm images appear in the list with delete buttons
 - [ ] Go to https://my-qrs.co/e2e-test-shop in incognito
 - [ ] Confirm hero images rotate as background
-- [ ] Confirm fallback (stone gradient) if no images uploaded
+- [ ] Confirm fallback (stone gradient) shows when no images uploaded
 
 ---
 
@@ -67,17 +68,7 @@ In the **normal browser window:**
 
 ---
 
-## PHASE 5 — Connect Telegram
-
-- [ ] On dashboard, find "Connect Telegram" button
-- [ ] Tap it — Telegram should open with the bot
-- [ ] Tap "Start" in Telegram
-- [ ] Confirm bot sends a confirmation message
-- [ ] Return to dashboard — confirm Telegram shows as connected
-
----
-
-## PHASE 6 — Buyer Storefront
+## PHASE 5 — Buyer Storefront
 
 In the **incognito window:**
 
@@ -90,34 +81,46 @@ In the **incognito window:**
 
 ---
 
-## PHASE 7 — Checkout (Real $1 Purchase)
+## PHASE 6 — Checkout (Real $1 Purchase)
 
 - [ ] Confirm Stripe checkout page loads
 - [ ] Confirm store name "E2E Test Shop" appears
 - [ ] Enter real credit card details
 - [ ] Complete purchase
 - [ ] Confirm success page loads
-- [ ] Confirm buyer receives order confirmation email
+- [ ] Confirm buyer receives order confirmation email at buyer email address
 
 ---
 
-## PHASE 8 — Seller Notifications
+## PHASE 7 — Seller Notifications
 
-- [ ] Check notification email — confirm "New order" email arrived from orders@my-qrs.co (or onboarding@resend.dev if Resend domain not yet set up)
-- [ ] Check Telegram — confirm order notification received with product name, total, and Accept/Decline buttons
-- [ ] Tap Accept in Telegram — confirm order status updates
+- [ ] Check your phone — confirm SMS received from Twilio number
+- [ ] SMS should contain store name, product name, total, and a link to the order
+- [ ] Tap the link in the SMS — confirm it opens the order detail page directly
+- [ ] Check notification email — note: will likely be blocked (onboarding@resend.dev restriction) until Resend domain is set up. Not a failure.
 
 ---
 
-## PHASE 9 — Order Management
+## PHASE 8 — Order Management
 
-Back in the **normal browser window (seller dashboard):**
+In the **normal browser window (seller dashboard):**
 
 - [ ] Go to Dashboard → Orders
-- [ ] Confirm order appears as ACCEPTED (or PENDING if Telegram not used)
+- [ ] Confirm order appears as PENDING
 - [ ] Open order detail
-- [ ] Click "Mark as fulfilled"
-- [ ] Confirm status changes to FULFILLED
+- [ ] Click "Accept order" — confirm status changes to ACCEPTED
+- [ ] Click "Mark as fulfilled" — confirm status changes to FULFILLED
+
+---
+
+## PHASE 9 — Telegram (Optional)
+
+- [ ] Go to Dashboard → Settings → Notifications
+- [ ] Find "Connect Telegram" option
+- [ ] Tap it — confirm t.me/my_qrs_bot opens
+- [ ] Tap Start in Telegram
+- [ ] Confirm bot sends confirmation message
+- [ ] Place another test order and confirm Telegram notification received with order details
 
 ---
 
@@ -145,8 +148,10 @@ Back in the **normal browser window (seller dashboard):**
 - [ ] Confirm store name and slug show correctly (read-only)
 - [ ] Confirm shop URL shows https://my-qrs.co/e2e-test-shop
 - [ ] Confirm notification email is editable
+- [ ] Confirm phone number is editable
 - [ ] Confirm Stripe Connect status shows connected
-- [ ] Confirm shipping section shows BAKED_IN copy
+- [ ] Confirm shipping section shows BAKED_IN copy ("Shipping is included in your product price...")
+- [ ] Confirm Telegram connect option is present under Notifications
 
 ---
 
