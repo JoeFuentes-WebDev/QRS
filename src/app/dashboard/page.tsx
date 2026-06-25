@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
 import { getCurrentSeller } from '@/lib/seller'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { HeroManager } from '@/components/dashboard/hero-manager'
@@ -15,24 +14,12 @@ export default async function DashboardPage() {
   const seller = await getCurrentSeller()
   if (!seller) redirect('/onboarding')
 
-  const [products, heroImages] = await Promise.all([
-    prisma.product.findMany({
-      where: { sellerId: seller.id, published: true },
-      select: { name: true, images: true },
-      orderBy: { createdAt: 'asc' },
-    }),
-    listHeroImagesForSeller(seller.id),
-  ])
+  const heroImages = await listHeroImagesForSeller(seller.id)
 
-  const imageOptions: PostcardImageOption[] = products.flatMap((product) =>
-    product.images.map((url, index) => ({
-      url,
-      label:
-        product.images.length > 1
-          ? `${product.name} (image ${index + 1})`
-          : product.name,
-    }))
-  )
+  const imageOptions: PostcardImageOption[] = heroImages.map((image, index) => ({
+    url: image.url,
+    label: `Hero image ${index + 1}`,
+  }))
 
   return (
     <main className="min-h-screen bg-stone-50 flex flex-col">

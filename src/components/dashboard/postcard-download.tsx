@@ -72,7 +72,7 @@ export function PostcardDownload({ slug, imageOptions }: PostcardDownloadProps) 
 
       {!hasImages ? (
         <p className="text-stone-400 text-sm">
-          Add a published product with a photo to generate your postcard.
+          Upload hero images to generate your postcard.
         </p>
       ) : (
         <>
@@ -98,7 +98,7 @@ export function PostcardDownload({ slug, imageOptions }: PostcardDownloadProps) 
             <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
               <Image
                 src={selectedUrl}
-                alt={selectedLabel || 'Selected product image'}
+                alt={selectedLabel || 'Selected hero image'}
                 fill
                 className="object-cover"
                 unoptimized
