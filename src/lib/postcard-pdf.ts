@@ -1,8 +1,12 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import chromium from '@sparticuz/chromium'
 import puppeteer from 'puppeteer-core'
 import { generateQrDataUri } from '@/lib/qr'
 
 const TAGLINE = 'Scan to shop'
+
+chromium.setGraphicsMode = false
 
 function escapeHtml(value: string): string {
   return value
@@ -90,13 +94,39 @@ function buildPostcardHtml(params: {
 </html>`
 }
 
+function getChromiumBinCandidates(): string[] {
+  const root = /* turbopackIgnore: true */ process.cwd()
+  return [
+    join(root, 'node_modules/@sparticuz/chromium/bin'),
+    join(root, '.next/server/node_modules/@sparticuz/chromium/bin'),
+  ]
+}
+
 async function resolveExecutablePath(): Promise<string> {
+  const customPath = process.env.CHROMIUM_PATH?.trim()
+  if (customPath && existsSync(customPath)) {
+    return customPath
+  }
+
   if (process.env.NODE_ENV === 'development') {
-    const localPath = process.env.CHROMIUM_PATH
-    if (localPath) {
-      return localPath
+    const macPath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    if (existsSync(macPath)) {
+      return macPath
     }
-    return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    throw new Error(
+      'Set CHROMIUM_PATH to your local Chrome executable for development.'
+    )
+  }
+
+  for (const binPath of getChromiumBinCandidates()) {
+    if (existsSync(binPath)) {
+      return chromium.executablePath(binPath)
+    }
+  }
+
+  const remotePack = process.env.CHROMIUM_REMOTE_EXEC_PATH?.trim()
+  if (remotePack) {
+    return chromium.executablePath(remotePack)
   }
 
   return chromium.executablePath()
@@ -118,7 +148,7 @@ export async function generatePostcardPdf(params: {
     args: chromium.args,
     defaultViewport: { width: 384, height: 576, deviceScaleFactor: 2 },
     executablePath: await resolveExecutablePath(),
-    headless: true,
+    headless: 'shell',
   })
 
   try {
