@@ -95,3 +95,18 @@ model HeroImage {
 
   @@index([sellerId])
 }
+
+model AnalyticsEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  event         String
+  userId        String?  @map("user_id")
+  properties    Json?
+  context       String
+  identityModel String   @map("identity_model")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("events")
+}

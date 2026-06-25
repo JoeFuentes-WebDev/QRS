@@ -15,6 +15,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
     "@clerk/nextjs": "^7.4.3",
+    "@joefuentes/dotell": "^1.0.0",
     "@prisma/client": "^5.22.0",
     "@sparticuz/chromium": "^147.0.0",
     "@stripe/stripe-js": "^9.5.0",
