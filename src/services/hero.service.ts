@@ -1,6 +1,18 @@
 import type { HeroImage } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
+export async function sellerOwnsHeroImageUrl(
+  sellerId: string,
+  imageUrl: string
+): Promise<boolean> {
+  const image = await prisma.heroImage.findFirst({
+    where: { sellerId, url: imageUrl },
+    select: { id: true },
+  })
+
+  return !!image
+}
+
 export async function listHeroImagesForSeller(
   sellerId: string
 ): Promise<HeroImage[]> {

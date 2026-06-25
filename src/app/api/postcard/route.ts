@@ -1,20 +1,11 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { generatePostcardPdf } from '@/lib/postcard-pdf'
+import { sellerOwnsHeroImageUrl } from '@/services/hero.service'
 import { getSellerByClerkId } from '@/services/seller.service'
 
 type PostcardBody = {
   imageUrl?: string
-}
-
-async function sellerOwnsImageUrl(sellerId: string, imageUrl: string): Promise<boolean> {
-  const products = await prisma.product.findMany({
-    where: { sellerId, published: true },
-    select: { images: true },
-  })
-
-  return products.some((product) => product.images.includes(imageUrl))
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -40,7 +31,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 })
   }
 
-  const ownsImage = await sellerOwnsImageUrl(seller.id, imageUrl)
+  const ownsImage = await sellerOwnsHeroImageUrl(seller.id, imageUrl)
   if (!ownsImage) {
     return NextResponse.json({ error: 'Invalid image selection' }, { status: 400 })
   }
