@@ -81,8 +81,13 @@ export async function createSeller(
     },
   })
 
+  console.log('[onboarding] before trackSellerEvent seller.signed_up', userId)
   void trackSellerEvent(userId, 'seller.signed_up')
+  console.log('[onboarding] after trackSellerEvent seller.signed_up', userId)
+
+  console.log('[onboarding] before trackSellerEvent seller.onboarding_completed', userId)
   void trackSellerEvent(userId, 'seller.onboarding_completed')
+  console.log('[onboarding] after trackSellerEvent seller.onboarding_completed', userId)
 
   redirect('/dashboard')
 }
