@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export type PostcardImageOption = {
   url: string
@@ -14,11 +14,24 @@ type PostcardDownloadProps = {
 }
 
 export function PostcardDownload({ slug, imageOptions }: PostcardDownloadProps) {
-  const [selectedUrl, setSelectedUrl] = useState(imageOptions[0]?.url ?? '')
+  const [selectedUrl, setSelectedUrl] = useState(() => imageOptions[0]?.url ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const hasImages = imageOptions.length > 0
+  const hasMultipleImages = imageOptions.length > 1
+
+  useEffect(() => {
+    if (imageOptions.length === 0) {
+      setSelectedUrl('')
+      return
+    }
+
+    setSelectedUrl((current) => {
+      const stillValid = imageOptions.some((option) => option.url === current)
+      return stillValid ? current : imageOptions[0].url
+    })
+  }, [imageOptions])
 
   const selectedLabel = useMemo(
     () => imageOptions.find((option) => option.url === selectedUrl)?.label ?? '',
@@ -76,23 +89,25 @@ export function PostcardDownload({ slug, imageOptions }: PostcardDownloadProps) 
         </p>
       ) : (
         <>
-          <div>
-            <label htmlFor="postcard-image" className="block text-sm font-medium text-stone-700 mb-2">
-              Hero image
-            </label>
-            <select
-              id="postcard-image"
-              value={selectedUrl}
-              onChange={(e) => setSelectedUrl(e.target.value)}
-              className="w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 bg-white"
-            >
-              {imageOptions.map((option) => (
-                <option key={option.url} value={option.url}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {hasMultipleImages && (
+            <div>
+              <label htmlFor="postcard-image" className="block text-sm font-medium text-stone-700 mb-2">
+                Hero image
+              </label>
+              <select
+                id="postcard-image"
+                value={selectedUrl}
+                onChange={(e) => setSelectedUrl(e.target.value)}
+                className="w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 bg-white"
+              >
+                {imageOptions.map((option) => (
+                  <option key={option.url} value={option.url}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {selectedUrl && (
             <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
