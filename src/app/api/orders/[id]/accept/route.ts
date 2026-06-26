@@ -35,7 +35,10 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid status transition' }, { status: 409 })
   }
 
-  void trackSellerEvent(seller.clerkUserId, 'order.accepted')
+  void trackSellerEvent(seller.clerkUserId, 'order.accepted', {
+    orderId: result.order.id,
+    sellerId: seller.clerkUserId,
+  })
 
   return NextResponse.json({ order: { id: result.order.id, status: result.order.status } })
 }

@@ -89,7 +89,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
     })
 
-    void trackSellerEvent(order.seller.clerkUserId, 'order.placed')
+    void trackSellerEvent(order.seller.clerkUserId, 'order.placed', {
+      orderId: order.id,
+      sellerId: order.seller.clerkUserId,
+    })
   } catch (error) {
     console.error('Order processing error:', error)
     return NextResponse.json({ error: 'Order processing failed' }, { status: 500 })

@@ -84,7 +84,9 @@ export async function syncStripeConnectStatus(seller: {
     await updateSellerStripeConnect(seller.id, {
       stripeConnectOnboarded: true,
     })
-    await trackSellerEvent(seller.clerkUserId, 'stripe.connected')
+    await trackSellerEvent(seller.clerkUserId, 'stripe.connected', {
+      sellerId: seller.clerkUserId,
+    })
     onboarded = true
   }
 

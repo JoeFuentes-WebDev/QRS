@@ -111,7 +111,10 @@ function trackPublishIfNeeded(
   nowPublished: boolean
 ) {
   if (!wasPublished && nowPublished) {
-    void trackSellerEvent(clerkUserId, 'product.published', { productId })
+    void trackSellerEvent(clerkUserId, 'product.published', {
+      productId,
+      sellerId: clerkUserId,
+    })
   }
 }
 

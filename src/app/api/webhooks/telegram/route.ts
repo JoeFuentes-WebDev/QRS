@@ -102,10 +102,16 @@ async function handleOrderCallback(
   }
 
   if (parsed.action === 'accept') {
-    void trackSellerEvent(seller.clerkUserId, 'order.accepted')
+    void trackSellerEvent(seller.clerkUserId, 'order.accepted', {
+      orderId: result.order.id,
+      sellerId: seller.clerkUserId,
+    })
     await answerCallbackQuery(botToken, callbackQueryId, 'Order accepted')
   } else {
-    void trackSellerEvent(seller.clerkUserId, 'order.declined')
+    void trackSellerEvent(seller.clerkUserId, 'order.declined', {
+      orderId: result.order.id,
+      sellerId: seller.clerkUserId,
+    })
     await answerCallbackQuery(botToken, callbackQueryId, 'Order declined')
   }
 }

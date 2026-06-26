@@ -71,7 +71,7 @@ export async function createSeller(
     return { error: 'No email found on your account. Add an email in Clerk first.' }
   }
 
-  await prisma.seller.create({
+  const seller = await prisma.seller.create({
     data: {
       clerkUserId: userId,
       storeName,
@@ -82,11 +82,11 @@ export async function createSeller(
   })
 
   console.log('[onboarding] before trackSellerEvent seller.signed_up', userId)
-  void trackSellerEvent(userId, 'seller.signed_up')
+  void trackSellerEvent(userId, 'seller.signed_up', { sellerId: userId })
   console.log('[onboarding] after trackSellerEvent seller.signed_up', userId)
 
   console.log('[onboarding] before trackSellerEvent seller.onboarding_completed', userId)
-  void trackSellerEvent(userId, 'seller.onboarding_completed')
+  void trackSellerEvent(userId, 'seller.onboarding_completed', { sellerId: userId })
   console.log('[onboarding] after trackSellerEvent seller.onboarding_completed', userId)
 
   redirect('/dashboard')
