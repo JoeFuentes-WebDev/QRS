@@ -37,7 +37,7 @@ export async function getOrCreateConnectAccount(
     controller: {
       fees: { payer: 'application' },
       losses: { payments: 'stripe' },
-      stripe_dashboard: { type: 'express' },
+      stripe_dashboard: { type: 'none' },
     },
     email,
     capabilities: {
