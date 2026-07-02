@@ -34,6 +34,7 @@ export async function getOrCreateConnectAccount(
   }
 
   const account = await stripe.accounts.create({
+    country: 'US',
     controller: {
       fees: { payer: 'application' },
       losses: { payments: 'stripe' },
