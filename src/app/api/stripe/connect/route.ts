@@ -1,5 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { getSellerByClerkId } from '@/services/seller.service'
 import {
   createAccountLink,
@@ -36,6 +37,22 @@ export async function POST(): Promise<NextResponse> {
     const url = await createAccountLink(accountId)
     return NextResponse.json({ url })
   } catch (error) {
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error('Stripe Connect onboarding error:', {
+        type: error.type,
+        code: error.code,
+        message: error.message,
+        requestId: error.requestId,
+      })
+      return NextResponse.json(
+        {
+          error: 'Failed to start Stripe Connect onboarding',
+          message: error.message,
+        },
+        { status: error.statusCode ?? 500 }
+      )
+    }
+
     console.error('Stripe Connect onboarding error:', error)
     return NextResponse.json(
       { error: 'Failed to start Stripe Connect onboarding' },

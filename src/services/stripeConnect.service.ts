@@ -34,7 +34,11 @@ export async function getOrCreateConnectAccount(
   }
 
   const account = await stripe.accounts.create({
-    type: 'express',
+    controller: {
+      fees: { payer: 'application' },
+      losses: { payments: 'stripe' },
+      stripe_dashboard: { type: 'express' },
+    },
     email,
     capabilities: {
       card_payments: { requested: true },
