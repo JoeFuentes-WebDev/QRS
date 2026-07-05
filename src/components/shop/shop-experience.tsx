@@ -11,6 +11,28 @@ import type { Product, FavoriteItem } from '@/types'
 
 type Phase = 'prompt' | 'swipe' | 'summary'
 
+function SearchNavButton({
+  active,
+  onClick,
+}: {
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'shrink-0 text-base transition-colors max-md:min-w-11 max-md:min-h-11 max-md:flex max-md:items-center max-md:justify-center max-md:text-xl ' +
+        (active ? 'text-stone-800' : 'text-stone-400 hover:text-stone-600')
+      }
+      aria-label="Toggle search"
+    >
+      🔍
+    </button>
+  )
+}
+
 function CartNavButton({
   count,
   onClick,
@@ -27,7 +49,7 @@ function CartNavButton({
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        className="w-5 h-5"
+        className="w-5 h-5 max-md:w-6 max-md:h-6"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -80,7 +102,8 @@ export function ShopExperience({
   const [activeFilter, setActiveFilter] = useState<string>('')
   const didAutoSearch = useRef(false)
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding()
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const desktopSearchInputRef = useRef<HTMLInputElement>(null)
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null)
 
   const currentProduct = reviewProduct ?? queue[currentIndex]
   const cartItems = favorites.filter((f) => !f.pinned)
@@ -107,7 +130,14 @@ export function ShopExperience({
   }, [slug])
 
   useEffect(() => {
-    if (searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100)
+    if (!searchOpen) return
+    setTimeout(() => {
+      const isMobile = window.matchMedia('(max-width: 767px)').matches
+      const input = isMobile
+        ? mobileSearchInputRef.current
+        : desktopSearchInputRef.current
+      input?.focus()
+    }, 100)
   }, [searchOpen])
 
   const handleSearch = useCallback(
@@ -257,11 +287,11 @@ export function ShopExperience({
                 </button>
               ) : (
                 <>
-                  <div className="flex-1 min-w-0 overflow-hidden">
+                  <div className="hidden md:block flex-1 min-w-0 overflow-hidden">
                     {searchOpen ? (
                       <div className="flex gap-2">
                         <input
-                          ref={searchInputRef}
+                          ref={desktopSearchInputRef}
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
@@ -272,6 +302,7 @@ export function ShopExperience({
                           className="flex-1 border-2 border-stone-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-stone-800"
                         />
                         <button
+                          type="button"
                           onClick={() => handleSearch(searchQuery)}
                           className="bg-stone-900 text-white px-3 py-1.5 rounded-xl text-sm font-medium"
                         >
@@ -281,6 +312,7 @@ export function ShopExperience({
                     ) : (
                       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                         <button
+                          type="button"
                           onClick={() => handleSearch('')}
                           className={
                             'shrink-0 font-medium px-3 py-1 rounded-full text-xs transition-colors ' +
@@ -294,6 +326,7 @@ export function ShopExperience({
                         {pills.map((pill) => (
                           <button
                             key={pill}
+                            type="button"
                             onClick={() => handleSearch(pill)}
                             className={
                               'shrink-0 font-medium px-3 py-1 rounded-full text-xs capitalize transition-colors ' +
@@ -308,13 +341,48 @@ export function ShopExperience({
                       </div>
                     )}
                   </div>
-                  <button
+                  <div className="md:hidden flex-1 min-w-0 min-h-11 flex items-center">
+                    {searchOpen ? (
+                      <div className="flex gap-2 w-full min-w-0">
+                        <input
+                          ref={mobileSearchInputRef}
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) =>
+                            e.key === 'Enter' && handleSearch(searchQuery)
+                          }
+                          placeholder="Search..."
+                          className="flex-1 min-w-0 border-2 border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-stone-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSearch(searchQuery)}
+                          className="shrink-0 bg-stone-900 text-white px-3 py-2 rounded-xl text-sm font-medium"
+                        >
+                          Go
+                        </button>
+                      </div>
+                    ) : (
+                      <select
+                        value={activeFilter}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="w-full border-2 border-stone-200 rounded-xl px-3 py-2 text-sm font-medium capitalize bg-white text-stone-800 focus:outline-none focus:border-stone-800"
+                        aria-label="Filter by category"
+                      >
+                        <option value="">All</option>
+                        {pills.map((pill) => (
+                          <option key={pill} value={pill}>
+                            {pill}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <SearchNavButton
+                    active={searchOpen}
                     onClick={() => setSearchOpen((o) => !o)}
-                    className={`shrink-0 text-base transition-colors ${searchOpen ? 'text-stone-800' : 'text-stone-400 hover:text-stone-600'}`}
-                    aria-label="Toggle search"
-                  >
-                    🔍
-                  </button>
+                  />
                 </>
               )}
               <CartNavButton count={cartItems.length} onClick={openCart} />
