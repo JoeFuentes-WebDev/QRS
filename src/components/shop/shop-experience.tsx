@@ -11,6 +11,43 @@ import type { Product, FavoriteItem } from '@/types'
 
 type Phase = 'prompt' | 'swipe' | 'summary'
 
+function CartNavButton({
+  count,
+  onClick,
+}: {
+  count: number
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative shrink-0 text-stone-400 hover:text-stone-700 transition-colors max-md:min-w-11 max-md:min-h-11 max-md:flex max-md:items-center max-md:justify-center"
+      aria-label="View cart"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+        />
+      </svg>
+      {count > 0 && (
+        <span className="absolute top-0 right-0 max-md:top-1 max-md:right-1 bg-stone-900 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+          {count}
+        </span>
+      )}
+    </button>
+  )
+}
+
 type Props = {
   slug: string
   sellerId: string
@@ -47,6 +84,7 @@ export function ShopExperience({
 
   const currentProduct = reviewProduct ?? queue[currentIndex]
   const cartItems = favorites.filter((f) => !f.pinned)
+  const openCart = () => setPhase('summary')
 
   useEffect(() => {
     setFavorites(loadCart(slug))
@@ -168,7 +206,14 @@ export function ShopExperience({
   return (
     <main className="min-h-screen bg-stone-50 flex flex-col">
       {phase === 'prompt' && (
-        <div className="relative flex flex-col items-center justify-center flex-1 gap-8 px-6 py-12 overflow-hidden">
+        <>
+          <div className="md:hidden flex items-center justify-between gap-3 px-4 py-3 border-b border-stone-100 bg-stone-50 shrink-0">
+            <span className="text-sm font-bold text-stone-900 truncate">
+              {storeName}
+            </span>
+            <CartNavButton count={cartItems.length} onClick={openCart} />
+          </div>
+          <div className="relative flex flex-col items-center justify-center flex-1 gap-8 px-6 py-12 overflow-hidden">
           <HeroBackground images={heroImages} />
           <div className="relative z-10 text-center">
             <h1 className="text-4xl font-black tracking-tight text-stone-900">
@@ -193,12 +238,13 @@ export function ShopExperience({
             ))}
           </div>
         </div>
+        </>
       )}
 
       {phase === 'swipe' && currentProduct && (
         <div className="flex flex-col flex-1">
-          <div className="flex flex-col bg-stone-50 border-b border-stone-100">
-            <div className="flex items-center gap-2 px-4 pt-3 pb-2">
+          <div className="flex flex-col bg-stone-50 border-b border-stone-100 shrink-0 max-md:sticky max-md:top-0 max-md:z-30">
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 min-w-0">
               {reviewProduct ? (
                 <button
                   onClick={() => {
@@ -211,7 +257,7 @@ export function ShopExperience({
                 </button>
               ) : (
                 <>
-                  <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     {searchOpen ? (
                       <div className="flex gap-2">
                         <input
@@ -271,31 +317,7 @@ export function ShopExperience({
                   </button>
                 </>
               )}
-              <button
-                onClick={() => setPhase('summary')}
-                className="relative shrink-0 text-stone-400 hover:text-stone-700 transition-colors ml-1"
-                aria-label="View cart"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-                  />
-                </svg>
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-stone-900 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                    {cartItems.length}
-                  </span>
-                )}
-              </button>
+              <CartNavButton count={cartItems.length} onClick={openCart} />
             </div>
           </div>
 

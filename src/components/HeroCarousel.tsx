@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 const slides = [
-  { src: '/videos/scene1.mp4', caption: 'Scan your QR code. See your store come to life.' },
-  { src: '/videos/scene2.mp4', caption: 'Snap a photo. Your listing is ready in seconds.' },
-  { src: '/videos/scene3.mp4', caption: 'Your store — built automatically from your photos.' },
-  { src: '/videos/scene4.mp4', caption: 'Customers buy while you focus on your craft.' },
-  { src: '/videos/scene5.mp4', caption: 'New order. Time to ship. Your business is working.' },
+  { src: '/videos/scene1.mp4', poster: '/images/image1.png', caption: 'Scan your QR code. See your store come to life.' },
+  { src: '/videos/scene2.mp4', poster: '/images/image2.png', caption: 'Snap a photo. Your listing is ready in seconds.' },
+  { src: '/videos/scene3.mp4', poster: '/images/image3.png', caption: 'Your store — built automatically from your photos.' },
+  { src: '/videos/scene4.mp4', poster: '/images/image4.png', caption: 'Customers buy while you focus on your craft.' },
+  { src: '/videos/scene5.mp4', poster: '/images/image5.png', caption: 'New order. Time to ship. Your business is working.' },
 ]
 
 const DURATION = 4000
@@ -61,6 +61,8 @@ export default function HeroCarousel() {
           <video
             ref={el => { videoRefs.current[i] = el }}
             src={slide.src}
+            poster={slide.poster}
+            preload={i === 0 ? 'auto' : 'metadata'}
             muted
             playsInline
             onEnded={() => { goTo((i + 1) % slides.length); startTimer() }}
