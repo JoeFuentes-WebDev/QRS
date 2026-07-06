@@ -147,7 +147,12 @@ export function StripeConnectCard({
       </div>
 
       {!connected && (
-        <button
+        <>
+          <p className="text-stone-500 text-sm">
+            Connect your bank account to receive payments. Takes about 5 minutes.
+            Stripe handles everything securely — we never see your banking details.
+          </p>
+          <button
           type="button"
           onClick={handleConnect}
           disabled={loading || syncing}
@@ -158,7 +163,8 @@ export function StripeConnectCard({
             : started
               ? 'Onboarding incomplete — continue'
               : 'Connect Stripe'}
-        </button>
+          </button>
+        </>
       )}
 
       {!connected && !loading && (

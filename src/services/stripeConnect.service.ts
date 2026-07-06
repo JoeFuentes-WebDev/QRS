@@ -33,6 +33,8 @@ export async function getOrCreateConnectAccount(
     return seller.stripeConnectAccountId
   }
 
+  const appUrl = requireAppUrl()
+
   const account = await stripe.accounts.create({
     country: 'US',
     controller: {
@@ -41,6 +43,13 @@ export async function getOrCreateConnectAccount(
       stripe_dashboard: { type: 'none' },
     },
     email,
+    business_profile: {
+      name: seller.storeName,
+      url: `${appUrl}/${seller.slug}`,
+    },
+    individual: {
+      email,
+    },
     capabilities: {
       card_payments: { requested: true },
       transfers: { requested: true },
@@ -62,6 +71,9 @@ export async function createAccountLink(stripeAccountId: string): Promise<string
     refresh_url: `${appUrl}/dashboard/stripe/refresh`,
     return_url: `${appUrl}/dashboard/stripe/return`,
     type: 'account_onboarding',
+    collection_options: {
+      fields: 'eventually_due',
+    },
   })
 
   return link.url

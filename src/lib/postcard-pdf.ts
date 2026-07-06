@@ -4,9 +4,12 @@ import chromium from '@sparticuz/chromium'
 import puppeteer from 'puppeteer-core'
 import { generateQrDataUri } from '@/lib/qr'
 
-const TAGLINE = 'Scan to shop'
-
 chromium.setGraphicsMode = false
+
+const QRS_ORANGE = '#FF6B35'
+const INK = '#1A1A1A'
+const BADGE_PADDING_PX = 12
+const QR_SIZE_IN = '1.1in'
 
 function escapeHtml(value: string): string {
   return value
@@ -22,8 +25,13 @@ function buildPostcardHtml(params: {
   qrDataUri: string
 }): string {
   const storeName = escapeHtml(params.storeName)
-  const imageUrl = escapeHtml(params.imageUrl)
   const qrDataUri = params.qrDataUri
+  const hasHeroImage = params.imageUrl.trim().length > 0
+  const imageUrl = escapeHtml(params.imageUrl)
+
+  const backgroundMarkup = hasHeroImage
+    ? `<img class="hero-bg" src="${imageUrl}" alt="" />`
+    : '<div class="hero-bg hero-bg--default"></div>'
 
   return `<!DOCTYPE html>
 <html>
@@ -36,58 +44,62 @@ function buildPostcardHtml(params: {
         width: 4in;
         height: 6in;
         font-family: Helvetica, Arial, sans-serif;
-        background: #fafaf9;
-        color: #1c1917;
+        background: ${QRS_ORANGE};
       }
       .card {
+        position: relative;
         width: 4in;
         height: 6in;
-        display: flex;
-        flex-direction: column;
-        padding: 0.2in;
+        overflow: hidden;
       }
-      .hero {
+      .hero-bg {
+        position: absolute;
+        inset: 0;
         width: 100%;
-        height: 2.6in;
-        border-radius: 12px;
+        height: 100%;
         object-fit: cover;
-        background: #e7e5e4;
       }
-      .title {
-        margin-top: 0.18in;
-        font-size: 22px;
-        font-weight: 800;
-        text-align: center;
-        line-height: 1.2;
+      .hero-bg--default {
+        background: ${QRS_ORANGE};
       }
-      .tagline {
-        margin-top: 0.06in;
-        font-size: 11px;
-        text-align: center;
-        color: #78716c;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      .qr-wrap {
-        margin-top: auto;
+      .badge {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        background: #ffffff;
+        padding: ${BADGE_PADDING_PX}px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-bottom: 0.08in;
+        min-width: calc(${QR_SIZE_IN} + ${BADGE_PADDING_PX * 2}px);
+        width: max-content;
+        max-width: 3in;
       }
       .qr {
-        width: 1.55in;
-        height: 1.55in;
+        width: ${QR_SIZE_IN};
+        height: ${QR_SIZE_IN};
+        display: block;
+      }
+      .store-name {
+        margin-top: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: ${INK};
+        text-align: center;
+        line-height: 1.25;
+        max-width: 2.75in;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
     </style>
   </head>
   <body>
     <div class="card">
-      <img class="hero" src="${imageUrl}" alt="" />
-      <div class="title">${storeName}</div>
-      <div class="tagline">${TAGLINE}</div>
-      <div class="qr-wrap">
+      ${backgroundMarkup}
+      <div class="badge">
         <img class="qr" src="${qrDataUri}" alt="Shop QR code" />
+        <p class="store-name">${storeName}</p>
       </div>
     </div>
   </body>
