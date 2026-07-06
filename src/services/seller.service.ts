@@ -39,6 +39,16 @@ export async function updateSellerPhone(
   })
 }
 
+export async function updateSellerPostcardCta(
+  sellerId: string,
+  postcardCta: string | null
+) {
+  return prisma.seller.update({
+    where: { id: sellerId },
+    data: { postcardCta },
+  })
+}
+
 export async function getSellerById(sellerId: string) {
   return prisma.seller.findUnique({
     where: { id: sellerId },

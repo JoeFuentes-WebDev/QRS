@@ -41,6 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       storeName: seller.storeName,
       slug: seller.slug,
       imageUrl,
+      postcardCta: seller.postcardCta,
     })
 
     return new NextResponse(new Uint8Array(pdf), {

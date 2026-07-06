@@ -52,7 +52,11 @@ export default async function DashboardPage() {
             }))}
           />
 
-          <PostcardDownload slug={seller.slug} imageOptions={imageOptions} />
+          <PostcardDownload
+            slug={seller.slug}
+            imageOptions={imageOptions}
+            initialPostcardCta={seller.postcardCta}
+          />
         </div>
       </div>
     </main>

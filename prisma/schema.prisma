@@ -32,6 +32,7 @@ model Seller {
   shippoApiKey           String?
   telegramChatId         String?
   sellerPhone            String?
+  postcardCta            String?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 

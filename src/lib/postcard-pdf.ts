@@ -23,11 +23,17 @@ function buildPostcardHtml(params: {
   storeName: string
   imageUrl: string
   qrDataUri: string
+  postcardCta: string | null
 }): string {
   const storeName = escapeHtml(params.storeName)
   const qrDataUri = params.qrDataUri
   const hasHeroImage = params.imageUrl.trim().length > 0
   const imageUrl = escapeHtml(params.imageUrl)
+  const postcardCta = params.postcardCta?.trim()
+  const ctaMarkup =
+    postcardCta && postcardCta.length > 0
+      ? `<p class="cta-text">${escapeHtml(postcardCta)}</p>`
+      : ''
 
   const backgroundMarkup = hasHeroImage
     ? `<img class="hero-bg" src="${imageUrl}" alt="" />`
@@ -62,10 +68,38 @@ function buildPostcardHtml(params: {
       .hero-bg--default {
         background: ${QRS_ORANGE};
       }
+      .header-overlay {
+        position: absolute;
+        top: 0.35in;
+        left: 0.25in;
+        right: 0.25in;
+        z-index: 1;
+        text-align: center;
+      }
+      .header-store-name {
+        font-size: 28px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.15;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      .cta-text {
+        margin-top: 0.12in;
+        font-size: 16px;
+        font-weight: 500;
+        color: #ffffff;
+        line-height: 1.3;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
       .badge {
         position: absolute;
         right: 0;
         bottom: 0;
+        z-index: 1;
         background: #ffffff;
         padding: ${BADGE_PADDING_PX}px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
@@ -81,9 +115,9 @@ function buildPostcardHtml(params: {
         height: ${QR_SIZE_IN};
         display: block;
       }
-      .store-name {
+      .badge-store-name {
         margin-top: 8px;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
         color: ${INK};
         text-align: center;
@@ -97,9 +131,13 @@ function buildPostcardHtml(params: {
   <body>
     <div class="card">
       ${backgroundMarkup}
+      <div class="header-overlay">
+        <h1 class="header-store-name">${storeName}</h1>
+        ${ctaMarkup}
+      </div>
       <div class="badge">
         <img class="qr" src="${qrDataUri}" alt="Shop QR code" />
-        <p class="store-name">${storeName}</p>
+        <p class="badge-store-name">${storeName}</p>
       </div>
     </div>
   </body>
@@ -148,12 +186,14 @@ export async function generatePostcardPdf(params: {
   storeName: string
   slug: string
   imageUrl: string
+  postcardCta?: string | null
 }): Promise<Buffer> {
   const qrDataUri = await generateQrDataUri(params.slug)
   const html = buildPostcardHtml({
     storeName: params.storeName,
     imageUrl: params.imageUrl,
     qrDataUri,
+    postcardCta: params.postcardCta ?? null,
   })
 
   const browser = await puppeteer.launch({
