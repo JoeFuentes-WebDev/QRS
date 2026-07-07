@@ -6,7 +6,7 @@ import { useRef, useState } from 'react'
 const steps = [
   {
     num: '01',
-    title: 'Sign up in 60 seconds',
+    title: 'Sign up in 5 minutes',
     body: 'Go to my-qrs.co, enter your store name and email, connect your Stripe account to receive payments. That\'s it — your store is live.',
     video: '/videos/scene1.mp4',
   },
@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
       <div className="max-w-6xl mx-auto px-6 pt-16 pb-4">
         <p className="text-xs font-bold tracking-widest uppercase text-[#FF6B35] mb-3">How it works</p>
         <h1 className="text-[clamp(32px,5vw,52px)] font-black tracking-tight leading-[1.05] text-[#1A1A1A] mb-4">
-          From sign-up to first sale<br />in under a minute.
+          From sign-up to store<br />in 5 minutes.
         </h1>
         <p className="text-lg text-[#555550] leading-relaxed max-w-xl">
           No developer needed. No monthly plan. Just your products and a QR code.
@@ -209,7 +209,7 @@ export default function HowItWorksPage() {
           Ready to start selling?
         </h2>
         <p className="text-white/80 text-lg mb-8 max-w-md mx-auto">
-          Set up your store in 60 seconds. No credit card required.
+          Set up your store in 5 minutes. No credit card required.
         </p>
         <Link
           href="/sign-up"

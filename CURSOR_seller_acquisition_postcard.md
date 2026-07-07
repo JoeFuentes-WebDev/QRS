@@ -25,7 +25,7 @@ Layout top to bottom, centered:
 
 - **Illustration area** — clean SVG line art of a hand holding a phone with a QR code on screen, or a simple minimal market stall icon. White lines on orange background. Keep it simple and charming — 80px tall max.
 - **Headline** — large bold white text: "Your whole store. One QR code."
-- **Subheadline** — smaller white text: "Set up in 60 seconds. Free to start."
+- **Subheadline** — smaller white text: "Set up in 5 minutes. Free to start."
 - **QR code** — bottom right corner, white square background with padding, QR code pointing to `https://my-qrs.co`. Generate using the `qrcode` npm package already installed.
 - **Wordmark** — bottom left, white text: "my-qrs.co", small
 

@@ -185,7 +185,7 @@ function buildSellerAcquisitionPostcardHtml(qrDataUri: string): string {
       <div class="front-content">
         <div class="illustration">${PHONE_ILLUSTRATION_SVG}</div>
         <h1 class="headline">Your whole store. One QR code.</h1>
-        <p class="subheadline">Set up in 60 seconds. Free to start.</p>
+        <p class="subheadline">Set up in 5 minutes. Free to start.</p>
       </div>
       <p class="wordmark">${escapeHtml('my-qrs.co')}</p>
       <div class="qr-badge">

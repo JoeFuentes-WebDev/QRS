@@ -145,7 +145,7 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-6 py-20 sm:py-24">
         <p className="text-xs font-bold tracking-widest uppercase text-[#FF6B35] mb-3">How it works</p>
         <h2 className="text-[clamp(28px,4vw,42px)] font-black tracking-tight leading-[1.1] text-[#1A1A1A] mb-4">
-          Up and selling<br />in under a minute
+          Up and selling<br />in 5 minutes
         </h2>
         <p className="text-lg text-[#555550] leading-relaxed max-w-xl mb-14">
           No developer, no monthly subscription, no learning curve. Just your products and a QR code.
