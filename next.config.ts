@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
   outputFileTracingIncludes: {
     '/api/postcard': ['./node_modules/@sparticuz/chromium/**'],
+    '/api/postcard/seller-acquisition': ['./node_modules/@sparticuz/chromium/**'],
   },
   images: {
     remotePatterns: [

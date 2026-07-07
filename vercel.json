@@ -4,6 +4,10 @@
     "src/app/api/postcard/route.ts": {
       "memory": 2048,
       "maxDuration": 30
+    },
+    "src/app/api/postcard/seller-acquisition/route.ts": {
+      "memory": 2048,
+      "maxDuration": 30
     }
   }
 }
