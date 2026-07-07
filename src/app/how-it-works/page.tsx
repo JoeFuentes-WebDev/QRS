@@ -6,32 +6,32 @@ import { useRef, useState } from 'react'
 const steps = [
   {
     num: '01',
-    title: 'Scan your QR code',
-    body: 'We give you a unique QR code the moment you sign up. Print it on a postcard, tape it to your table, or prop it next to your products. Point your phone at it and watch your store appear — live, real, yours.',
+    title: 'Sign up in 60 seconds',
+    body: 'Go to my-qrs.co, enter your store name and email, connect your Stripe account to receive payments. That\'s it — your store is live.',
     video: '/videos/scene1.mp4',
   },
   {
     num: '02',
     title: 'Add your products',
-    body: 'Snap a photo of anything you want to sell. Add a name and a price. That\'s your listing. No product descriptions required, no SKUs, no inventory system. Just a photo and a number.',
+    body: 'Snap a photo of anything you want to sell. AI reads the photo and fills in the name, description, and tags automatically. Set your price and you\'re done. No SKUs, no inventory system.',
     video: '/videos/scene2.mp4',
   },
   {
     num: '03',
-    title: 'Your store builds itself',
-    body: 'As soon as you add photos, your storefront is live. Clean product cards, your store name, ready to share. Send the link to your mailing list, post it on Instagram, or just let customers scan the QR code at your stall.',
+    title: 'Get your QR code',
+    body: 'Download your postcard — your store name, your QR code, print-ready. Leave it at your stall, tape it to your table, or hand it to anyone who asks.',
     video: '/videos/scene3.mp4',
   },
   {
     num: '04',
     title: 'Customers buy on their own',
-    body: 'Customers scan, browse, and check out — no account needed, no app to download. You can be busy with another customer, packaging an order, or on a coffee break. The sale happens without you.',
+    body: 'Customers scan, browse, and check out — no account needed, no app to download. The sale happens while you\'re busy with another customer.',
     video: '/videos/scene4.mp4',
   },
   {
     num: '05',
     title: 'You get paid. You ship.',
-    body: 'The moment someone buys, you get a Telegram notification with the order details. Payment goes straight to your Stripe account. Pack it up, print the shipping label, done. Your store keeps selling while you focus on making.',
+    body: 'The moment someone buys, you get an email notification with the order details. Payment goes straight to your Stripe account. Want a text too? Add your phone number in Settings. Pack it up, drop it at USPS. Your store keeps selling while you focus on making.',
     video: '/videos/scene5.mp4',
   },
 ]
