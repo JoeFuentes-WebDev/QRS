@@ -43,7 +43,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/how-it-works"
-              className="hidden sm:block text-sm font-medium text-[#555550] px-3 py-1.5 rounded-full hover:bg-orange-50 hover:text-[#1A1A1A] transition-colors"
+              className="hidden sm:block text-sm font-medium text-[#FF6B35] underline underline-offset-2 hover:text-[#E0501A] transition-colors"
             >
               How it works
             </Link>
@@ -89,7 +89,7 @@ export default function LandingPage() {
               href="/sign-up"
               className="inline-flex items-center gap-2 text-base font-bold text-white bg-[#FF6B35] px-7 py-3.5 rounded-full hover:bg-[#E0501A] transition-colors shadow-[0_4px_16px_rgba(255,107,53,0.3)] hover:shadow-[0_8px_24px_rgba(255,107,53,0.4)] hover:-translate-y-0.5 transform"
             >
-              Set up in 60 seconds
+              Set up in 5 minutes
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

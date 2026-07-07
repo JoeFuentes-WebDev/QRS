@@ -143,26 +143,27 @@ function buildSellerAcquisitionPostcardHtml(qrDataUri: string): string {
       }
       .steps li {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 0.12in;
-        font-size: 14px;
-        line-height: 1.35;
+        font-size: 11px;
+        line-height: 1.3;
         color: ${INK};
-        margin-bottom: 0.08in;
+        margin-bottom: 0.05in;
         text-align: left;
       }
       .step-number {
         flex-shrink: 0;
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border-radius: 999px;
         background: ${QRS_ORANGE};
         color: #ffffff;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 800;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-top: 1px;
       }
       .back-url {
         font-size: 34px;
@@ -194,9 +195,12 @@ function buildSellerAcquisitionPostcardHtml(qrDataUri: string): string {
     <div class="page back">
       <h2 class="back-heading">Here's how it works</h2>
       <ol class="steps">
-        <li><span class="step-number">1</span><span>Upload your products</span></li>
-        <li><span class="step-number">2</span><span>Get your shop link and QR code</span></li>
-        <li><span class="step-number">3</span><span>Start selling</span></li>
+        <li><span class="step-number">1</span><span><strong>Sign up</strong> — go to my-qrs.co, enter your store name and email</span></li>
+        <li><span class="step-number">2</span><span><strong>Connect Stripe</strong> — to receive payments directly to your bank</span></li>
+        <li><span class="step-number">3</span><span><strong>Add products</strong> — snap a photo, AI fills in the details, set your price</span></li>
+        <li><span class="step-number">4</span><span><strong>Get your QR code</strong> — download your postcard, print it, leave it at your stall</span></li>
+        <li><span class="step-number">5</span><span><strong>Get paid</strong> — buyers scan, browse, and buy. You get an email when an order arrives.</span></li>
+        <li><span class="step-number">6</span><span><strong>Ship it</strong> — pack it up and drop it at USPS. Done.</span></li>
       </ol>
       <p class="back-url">${escapeHtml('my-qrs.co')}</p>
       <p class="back-tagline">Built for makers. Loved by buyers.</p>
