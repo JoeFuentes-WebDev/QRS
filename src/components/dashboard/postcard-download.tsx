@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { savePostcardCta } from '@/app/dashboard/postcard/actions'
+import type { PostcardOrientation } from '@/lib/postcard-pdf'
 
 export type PostcardImageOption = {
   url: string
@@ -22,6 +23,7 @@ export function PostcardDownload({
 }: PostcardDownloadProps) {
   const [selectedUrl, setSelectedUrl] = useState(() => imageOptions[0]?.url ?? '')
   const [postcardCta, setPostcardCta] = useState(initialPostcardCta ?? '')
+  const [orientation, setOrientation] = useState<PostcardOrientation>('horizontal')
   const [loading, setLoading] = useState(false)
   const [savingCta, setSavingCta] = useState(false)
   const [ctaMessage, setCtaMessage] = useState<string | null>(null)
@@ -71,7 +73,7 @@ export function PostcardDownload({
       const res = await fetch('/api/postcard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: selectedUrl }),
+        body: JSON.stringify({ imageUrl: selectedUrl, orientation }),
       })
 
       if (!res.ok) {
@@ -102,8 +104,38 @@ export function PostcardDownload({
           Postcard
         </h2>
         <p className="text-stone-500 text-sm mt-1">
-          Download a 4×6 print-ready PDF with your shop QR code.
+          Download a print-ready PDF with your shop QR code.
         </p>
+      </div>
+
+      <div>
+        <p className="block text-sm font-medium text-stone-700 mb-2">Orientation</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setOrientation('horizontal')}
+            className={
+              'py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ' +
+              (orientation === 'horizontal'
+                ? 'border-stone-900 bg-stone-900 text-white'
+                : 'border-stone-200 text-stone-600 hover:border-stone-400')
+            }
+          >
+            Horizontal (6×4)
+          </button>
+          <button
+            type="button"
+            onClick={() => setOrientation('vertical')}
+            className={
+              'py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ' +
+              (orientation === 'vertical'
+                ? 'border-stone-900 bg-stone-900 text-white'
+                : 'border-stone-200 text-stone-600 hover:border-stone-400')
+            }
+          >
+            Vertical (4×6)
+          </button>
+        </div>
       </div>
 
       <div>

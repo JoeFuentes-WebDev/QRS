@@ -6,10 +6,11 @@ import { generateQrDataUri } from '@/lib/qr'
 
 chromium.setGraphicsMode = false
 
+export type PostcardOrientation = 'horizontal' | 'vertical'
+
 const QRS_ORANGE = '#FF6B35'
 const INK = '#1A1A1A'
-const BADGE_PADDING_PX = 12
-const QR_SIZE_IN = '1.1in'
+const BOX_PADDING_PX = 20
 
 function escapeHtml(value: string): string {
   return value
@@ -19,17 +20,46 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
+function getPostcardDimensions(orientation: PostcardOrientation): {
+  width: string
+  height: string
+  pageSize: string
+  viewportWidth: number
+  viewportHeight: number
+} {
+  if (orientation === 'vertical') {
+    return {
+      width: '4in',
+      height: '6in',
+      pageSize: '4in 6in',
+      viewportWidth: 384,
+      viewportHeight: 576,
+    }
+  }
+
+  return {
+    width: '6in',
+    height: '4in',
+    pageSize: '6in 4in',
+    viewportWidth: 576,
+    viewportHeight: 384,
+  }
+}
+
 function buildPostcardHtml(params: {
   storeName: string
   imageUrl: string
   qrDataUri: string
   postcardCta: string | null
+  orientation: PostcardOrientation
 }): string {
   const storeName = escapeHtml(params.storeName)
   const qrDataUri = params.qrDataUri
   const hasHeroImage = params.imageUrl.trim().length > 0
   const imageUrl = escapeHtml(params.imageUrl)
   const postcardCta = params.postcardCta?.trim()
+  const { width, height, pageSize } = getPostcardDimensions(params.orientation)
+
   const ctaMarkup =
     postcardCta && postcardCta.length > 0
       ? `<p class="cta-text">${escapeHtml(postcardCta)}</p>`
@@ -44,19 +74,22 @@ function buildPostcardHtml(params: {
   <head>
     <meta charset="utf-8" />
     <style>
-      @page { size: 4in 6in; margin: 0; }
+      @page { size: ${pageSize}; margin: 0; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        width: 4in;
-        height: 6in;
+        width: ${width};
+        height: ${height};
         font-family: Helvetica, Arial, sans-serif;
         background: ${QRS_ORANGE};
       }
       .card {
         position: relative;
-        width: 4in;
-        height: 6in;
+        width: ${width};
+        height: ${height};
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .hero-bg {
         position: absolute;
@@ -68,76 +101,56 @@ function buildPostcardHtml(params: {
       .hero-bg--default {
         background: ${QRS_ORANGE};
       }
-      .header-overlay {
-        position: absolute;
-        top: 0.35in;
-        left: 0.25in;
-        right: 0.25in;
+      .content-box {
+        position: relative;
         z-index: 1;
-        text-align: center;
-      }
-      .header-store-name {
-        font-size: 28px;
-        font-weight: 800;
-        color: #ffffff;
-        line-height: 1.15;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-      }
-      .cta-text {
-        margin-top: 0.12in;
-        font-size: 16px;
-        font-weight: 500;
-        color: #ffffff;
-        line-height: 1.3;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-      }
-      .badge {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        z-index: 1;
+        width: 50%;
+        padding: ${BOX_PADDING_PX}px;
         background: #ffffff;
-        padding: ${BADGE_PADDING_PX}px;
+        border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-width: calc(${QR_SIZE_IN} + ${BADGE_PADDING_PX * 2}px);
-        width: max-content;
-        max-width: 3in;
-      }
-      .qr {
-        width: ${QR_SIZE_IN};
-        height: ${QR_SIZE_IN};
-        display: block;
-      }
-      .badge-store-name {
-        margin-top: 8px;
-        font-size: 12px;
-        font-weight: 500;
-        color: ${INK};
         text-align: center;
-        line-height: 1.25;
-        max-width: 2.75in;
+      }
+      .store-name {
+        width: 100%;
+        font-size: 28px;
+        font-weight: 800;
+        color: ${INK};
+        line-height: 1.15;
         word-wrap: break-word;
         overflow-wrap: break-word;
+      }
+      .cta-text {
+        width: 100%;
+        margin-top: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        color: ${INK};
+        line-height: 1.35;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      .qr {
+        margin-top: 16px;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        display: block;
+        object-fit: contain;
       }
     </style>
   </head>
   <body>
     <div class="card">
       ${backgroundMarkup}
-      <div class="header-overlay">
-        <h1 class="header-store-name">${storeName}</h1>
+      <div class="content-box">
+        <h1 class="store-name">${storeName}</h1>
         ${ctaMarkup}
-      </div>
-      <div class="badge">
         <img class="qr" src="${qrDataUri}" alt="Shop QR code" />
-        <p class="badge-store-name">${storeName}</p>
       </div>
     </div>
   </body>
@@ -187,18 +200,26 @@ export async function generatePostcardPdf(params: {
   slug: string
   imageUrl: string
   postcardCta?: string | null
+  orientation?: PostcardOrientation
 }): Promise<Buffer> {
+  const orientation = params.orientation ?? 'horizontal'
+  const dimensions = getPostcardDimensions(orientation)
   const qrDataUri = await generateQrDataUri(params.slug)
   const html = buildPostcardHtml({
     storeName: params.storeName,
     imageUrl: params.imageUrl,
     qrDataUri,
     postcardCta: params.postcardCta ?? null,
+    orientation,
   })
 
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: { width: 384, height: 576, deviceScaleFactor: 2 },
+    defaultViewport: {
+      width: dimensions.viewportWidth,
+      height: dimensions.viewportHeight,
+      deviceScaleFactor: 2,
+    },
     executablePath: await resolveExecutablePath(),
     headless: 'shell',
   })
@@ -207,8 +228,8 @@ export async function generatePostcardPdf(params: {
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'load' })
     const pdf = await page.pdf({
-      width: '4in',
-      height: '6in',
+      width: dimensions.width,
+      height: dimensions.height,
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     })
@@ -216,4 +237,13 @@ export async function generatePostcardPdf(params: {
   } finally {
     await browser.close()
   }
+}
+
+export function parsePostcardOrientation(
+  value: unknown
+): PostcardOrientation | null {
+  if (value === 'horizontal' || value === 'vertical') {
+    return value
+  }
+  return null
 }

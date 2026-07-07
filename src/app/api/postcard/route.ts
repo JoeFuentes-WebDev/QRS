@@ -1,11 +1,12 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { generatePostcardPdf } from '@/lib/postcard-pdf'
+import { generatePostcardPdf, parsePostcardOrientation } from '@/lib/postcard-pdf'
 import { sellerOwnsHeroImageUrl } from '@/services/hero.service'
 import { getSellerByClerkId } from '@/services/seller.service'
 
 type PostcardBody = {
   imageUrl?: string
+  orientation?: string
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -36,12 +37,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid image selection' }, { status: 400 })
   }
 
+  const orientationInput = body.orientation ?? 'horizontal'
+  const orientation = parsePostcardOrientation(orientationInput)
+  if (!orientation) {
+    return NextResponse.json(
+      { error: "orientation must be 'horizontal' or 'vertical'" },
+      { status: 400 }
+    )
+  }
+
   try {
     const pdf = await generatePostcardPdf({
       storeName: seller.storeName,
       slug: seller.slug,
       imageUrl,
       postcardCta: seller.postcardCta,
+      orientation,
     })
 
     return new NextResponse(new Uint8Array(pdf), {
