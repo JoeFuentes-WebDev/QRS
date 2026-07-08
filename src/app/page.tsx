@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
+import { faqItems } from '@/lib/faq-data'
 
 export const metadata = {
   title: 'QRS — One link. One QR code. Your whole store.',
@@ -32,6 +33,8 @@ const steps = [
 ]
 
 export default function LandingPage() {
+  const [costFaq] = faqItems
+
   return (
     <>
       {/* ─── Nav ─── */}
@@ -173,6 +176,21 @@ export default function LandingPage() {
           >
             Full walkthrough with screenshots →
           </Link>
+
+          <div className="mt-10 max-w-md mx-auto">
+            <h3 className="text-base font-bold text-[#1A1A1A] mb-2">
+              {costFaq.question}
+            </h3>
+            <p className="text-[15px] text-[#555550] leading-relaxed">
+              {costFaq.answer}
+            </p>
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#FF6B35] border-b-2 border-orange-100 hover:border-[#FF6B35] pb-0.5 transition-colors mt-5"
+            >
+              More questions? Read our FAQ →
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -5,6 +5,11 @@ export type FaqItem = {
 
 export const faqItems: FaqItem[] = [
   {
+    question: 'How much does it cost?',
+    answer:
+      'No monthly fee. QRS charges a 2% platform fee per sale through Stripe — you keep 98.5% of every transaction. No setup fee or subscription.',
+  },
+  {
     question: 'What is QRS?',
     answer:
       'QRS is a storefront platform for craft fair and street market sellers. You get a shop at your own link, a QR code for in-person selling, and Stripe-powered checkout — no monthly fee.',
