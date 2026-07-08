@@ -6,7 +6,7 @@ import { savePostcardCta } from '@/app/dashboard/postcard/actions'
 import {
   POSTCARD_DEFAULT_HERO,
   type PostcardOrientation,
-} from '@/lib/postcard-pdf'
+} from '@/lib/postcard-shared'
 
 export type PostcardImageOption = {
   url: string

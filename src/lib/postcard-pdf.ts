@@ -1,15 +1,21 @@
+import 'server-only'
+
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import chromium from '@sparticuz/chromium'
 import puppeteer from 'puppeteer-core'
 import { generateQrDataUri } from '@/lib/qr'
+import { QRS_ORANGE, type PostcardOrientation } from '@/lib/postcard-shared'
 
 chromium.setGraphicsMode = false
 
-export type PostcardOrientation = 'horizontal' | 'vertical'
-
-export const POSTCARD_DEFAULT_HERO = 'default'
-export const QRS_ORANGE = '#FF6B35'
+export type { PostcardOrientation } from '@/lib/postcard-shared'
+export {
+  POSTCARD_DEFAULT_HERO,
+  QRS_ORANGE,
+  parsePostcardOrientation,
+  resolvePostcardHeroImageUrl,
+} from '@/lib/postcard-shared'
 const INK = '#1A1A1A'
 const BOX_PADDING_PX = 20
 
@@ -240,21 +246,3 @@ export async function generatePostcardPdf(params: {
   }
 }
 
-export function parsePostcardOrientation(
-  value: unknown
-): PostcardOrientation | null {
-  if (value === 'horizontal' || value === 'vertical') {
-    return value
-  }
-  return null
-}
-
-export function resolvePostcardHeroImageUrl(
-  heroImageUrl: string | null | undefined
-): string {
-  const trimmed = heroImageUrl?.trim()
-  if (!trimmed || trimmed === POSTCARD_DEFAULT_HERO) {
-    return ''
-  }
-  return trimmed
-}
