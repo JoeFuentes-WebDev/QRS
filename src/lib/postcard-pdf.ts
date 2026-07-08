@@ -8,7 +8,8 @@ chromium.setGraphicsMode = false
 
 export type PostcardOrientation = 'horizontal' | 'vertical'
 
-const QRS_ORANGE = '#FF6B35'
+export const POSTCARD_DEFAULT_HERO = 'default'
+export const QRS_ORANGE = '#FF6B35'
 const INK = '#1A1A1A'
 const BOX_PADDING_PX = 20
 
@@ -246,4 +247,14 @@ export function parsePostcardOrientation(
     return value
   }
   return null
+}
+
+export function resolvePostcardHeroImageUrl(
+  heroImageUrl: string | null | undefined
+): string {
+  const trimmed = heroImageUrl?.trim()
+  if (!trimmed || trimmed === POSTCARD_DEFAULT_HERO) {
+    return ''
+  }
+  return trimmed
 }

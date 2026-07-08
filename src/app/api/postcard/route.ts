@@ -1,11 +1,15 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { generatePostcardPdf, parsePostcardOrientation } from '@/lib/postcard-pdf'
+import {
+  generatePostcardPdf,
+  parsePostcardOrientation,
+  resolvePostcardHeroImageUrl,
+} from '@/lib/postcard-pdf'
 import { sellerOwnsHeroImageUrl } from '@/services/hero.service'
 import { getSellerByClerkId } from '@/services/seller.service'
 
 type PostcardBody = {
-  imageUrl?: string
+  heroImageUrl?: string | null
   orientation?: string
 }
 
@@ -27,14 +31,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const imageUrl = body.imageUrl?.trim()
-  if (!imageUrl) {
-    return NextResponse.json({ error: 'imageUrl is required' }, { status: 400 })
-  }
-
-  const ownsImage = await sellerOwnsHeroImageUrl(seller.id, imageUrl)
-  if (!ownsImage) {
-    return NextResponse.json({ error: 'Invalid image selection' }, { status: 400 })
+  const resolvedImageUrl = resolvePostcardHeroImageUrl(body.heroImageUrl)
+  if (resolvedImageUrl) {
+    const ownsImage = await sellerOwnsHeroImageUrl(seller.id, resolvedImageUrl)
+    if (!ownsImage) {
+      return NextResponse.json({ error: 'Invalid image selection' }, { status: 400 })
+    }
   }
 
   const orientationInput = body.orientation ?? 'horizontal'
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const pdf = await generatePostcardPdf({
       storeName: seller.storeName,
       slug: seller.slug,
-      imageUrl,
+      imageUrl: resolvedImageUrl,
       postcardCta: seller.postcardCta,
       orientation,
     })

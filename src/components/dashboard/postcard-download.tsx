@@ -3,7 +3,10 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { savePostcardCta } from '@/app/dashboard/postcard/actions'
-import type { PostcardOrientation } from '@/lib/postcard-pdf'
+import {
+  POSTCARD_DEFAULT_HERO,
+  type PostcardOrientation,
+} from '@/lib/postcard-pdf'
 
 export type PostcardImageOption = {
   url: string
@@ -21,7 +24,7 @@ export function PostcardDownload({
   imageOptions,
   initialPostcardCta,
 }: PostcardDownloadProps) {
-  const [selectedUrl, setSelectedUrl] = useState(() => imageOptions[0]?.url ?? '')
+  const [selectedHero, setSelectedHero] = useState(POSTCARD_DEFAULT_HERO)
   const [postcardCta, setPostcardCta] = useState(initialPostcardCta ?? '')
   const [orientation, setOrientation] = useState<PostcardOrientation>('horizontal')
   const [loading, setLoading] = useState(false)
@@ -30,24 +33,30 @@ export function PostcardDownload({
   const [error, setError] = useState<string | null>(null)
 
   const hasImages = imageOptions.length > 0
-  const hasMultipleImages = imageOptions.length > 1
 
   useEffect(() => {
-    if (imageOptions.length === 0) {
-      setSelectedUrl('')
+    if (!hasImages) {
+      setSelectedHero(POSTCARD_DEFAULT_HERO)
       return
     }
 
-    setSelectedUrl((current) => {
+    setSelectedHero((current) => {
+      if (current === POSTCARD_DEFAULT_HERO) {
+        return current
+      }
       const stillValid = imageOptions.some((option) => option.url === current)
-      return stillValid ? current : imageOptions[0].url
+      return stillValid ? current : POSTCARD_DEFAULT_HERO
     })
-  }, [imageOptions])
+  }, [hasImages, imageOptions])
 
-  const selectedLabel = useMemo(
-    () => imageOptions.find((option) => option.url === selectedUrl)?.label ?? '',
-    [imageOptions, selectedUrl]
-  )
+  const isDefaultSelected = selectedHero === POSTCARD_DEFAULT_HERO
+
+  const selectedLabel = useMemo(() => {
+    if (isDefaultSelected) {
+      return 'Default (QRS branded)'
+    }
+    return imageOptions.find((option) => option.url === selectedHero)?.label ?? ''
+  }, [imageOptions, isDefaultSelected, selectedHero])
 
   const handleSaveCta = async () => {
     setSavingCta(true)
@@ -64,8 +73,6 @@ export function PostcardDownload({
   }
 
   const handleDownload = async () => {
-    if (!selectedUrl) return
-
     setLoading(true)
     setError(null)
 
@@ -73,7 +80,10 @@ export function PostcardDownload({
       const res = await fetch('/api/postcard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: selectedUrl, orientation }),
+        body: JSON.stringify({
+          heroImageUrl: isDefaultSelected ? POSTCARD_DEFAULT_HERO : selectedHero,
+          orientation,
+        }),
       })
 
       if (!res.ok) {
@@ -174,56 +184,55 @@ export function PostcardDownload({
         )}
       </div>
 
-      {!hasImages ? (
-        <p className="text-stone-400 text-sm">
-          Upload hero images to generate your postcard.
-        </p>
-      ) : (
-        <>
-          {hasMultipleImages && (
-            <div>
-              <label htmlFor="postcard-image" className="block text-sm font-medium text-stone-700 mb-2">
-                Hero image
-              </label>
-              <select
-                id="postcard-image"
-                value={selectedUrl}
-                onChange={(e) => setSelectedUrl(e.target.value)}
-                className="w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 bg-white"
-              >
-                {imageOptions.map((option) => (
-                  <option key={option.url} value={option.url}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {selectedUrl && (
-            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
-              <Image
-                src={selectedUrl}
-                alt={selectedLabel || 'Selected hero image'}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          )}
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={loading || !selectedUrl}
-            className="w-full bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-stone-700 transition-colors disabled:opacity-50"
+      {hasImages && (
+        <div>
+          <label htmlFor="postcard-image" className="block text-sm font-medium text-stone-700 mb-2">
+            Background
+          </label>
+          <select
+            id="postcard-image"
+            value={selectedHero}
+            onChange={(e) => setSelectedHero(e.target.value)}
+            className="w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 bg-white"
           >
-            {loading ? 'Generating PDF…' : 'Download postcard'}
-          </button>
-        </>
+            <option value={POSTCARD_DEFAULT_HERO}>Default (QRS branded)</option>
+            {imageOptions.map((option) => (
+              <option key={option.url} value={option.url}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
+
+      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-stone-100">
+        {isDefaultSelected ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#FF6B35]">
+            <span className="text-white text-sm font-semibold tracking-wide">
+              QRS branded background
+            </span>
+          </div>
+        ) : (
+          <Image
+            src={selectedHero}
+            alt={selectedLabel || 'Selected hero image'}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        )}
+      </div>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={loading}
+        className="w-full bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-stone-700 transition-colors disabled:opacity-50"
+      >
+        {loading ? 'Generating PDF…' : 'Download postcard'}
+      </button>
     </section>
   )
 }
