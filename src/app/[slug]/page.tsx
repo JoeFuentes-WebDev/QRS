@@ -58,6 +58,7 @@ export default async function ShopPage({ params }: Props) {
         sellerId={seller.id}
         storeName={seller.storeName}
         paymentsEnabled={seller.stripeConnectOnboarded}
+        initialCategories={categories}
         initialPills={pills}
         heroImages={heroImages.map((image) => ({
           id: image.id,

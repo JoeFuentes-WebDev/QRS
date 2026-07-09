@@ -1,7 +1,9 @@
 import { trackSellerEvent } from '@/services/analytics.service'
-import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
-import { updateSellerStripeConnect } from '@/services/seller.service'
+import {
+  getSellerById,
+  updateSellerStripeConnect,
+} from '@/services/seller.service'
 
 export type StripeConnectSyncResult = {
   stripeConnectOnboarded: boolean
@@ -21,9 +23,7 @@ export async function getOrCreateConnectAccount(
   sellerId: string,
   email: string
 ): Promise<string> {
-  const seller = await prisma.seller.findUnique({
-    where: { id: sellerId },
-  })
+  const seller = await getSellerById(sellerId)
 
   if (!seller) {
     throw new Error('Seller not found')

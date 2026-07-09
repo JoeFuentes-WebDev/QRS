@@ -88,6 +88,7 @@ type Props = {
   sellerId: string
   storeName: string
   paymentsEnabled: boolean
+  initialCategories: string[]
   initialPills: string[]
   heroImages: StorefrontHeroImage[]
 }
@@ -97,6 +98,7 @@ export function ShopExperience({
   sellerId,
   storeName,
   paymentsEnabled,
+  initialCategories,
   initialPills,
   heroImages,
 }: Props) {
@@ -112,6 +114,7 @@ export function ShopExperience({
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [pills, setPills] = useState<string[]>(initialPills)
+  const [categories, setCategories] = useState<string[]>(initialCategories)
   const [activeFilter, setActiveFilter] = useState<string>('')
   const didAutoSearch = useRef(false)
   const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding()
@@ -138,6 +141,7 @@ export function ShopExperience({
         const tags = (data.popularTags ?? []) as string[]
         const combined = [...new Set([...cats, ...tags])]
         if (combined.length > 0) setPills(combined)
+        if (cats.length > 0) setCategories(cats)
       })
       .catch(() => {})
   }, [slug])
@@ -300,7 +304,7 @@ export function ShopExperience({
                 </button>
               ) : (
                 <>
-                  <div className="hidden md:block flex-1 min-w-0 overflow-hidden">
+                  <div className="hidden md:flex flex-1 min-w-0 overflow-hidden items-center">
                     {searchOpen ? (
                       <div className="flex gap-2">
                         <input
@@ -384,9 +388,9 @@ export function ShopExperience({
                         aria-label="Filter by category"
                       >
                         <option value="">All</option>
-                        {pills.map((pill) => (
-                          <option key={pill} value={pill}>
-                            {pill}
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
                           </option>
                         ))}
                       </select>
