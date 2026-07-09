@@ -19,8 +19,9 @@ async function main() {
     create: TEST_SELLER,
   })
 
-  console.log(`Seed complete: seller "${seller.slug}" (${seller.id})`)
-  console.log('Products: 0 (fresh test data)')
+  // console.log(`Seed complete: seller "${seller.slug}" (${seller.id})`)
+  // console.log('Products: 0 (fresh test data)')
+  
 }
 
 main()
