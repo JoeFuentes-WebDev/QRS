@@ -176,11 +176,12 @@ export async function notifySellerNewOrder(
 ): Promise<void> {
   const totalCents = computeOrderTotalCents(params.order.items)
 
-  try {
-    await sendSellerOrderEmail(params, totalCents)
-  } catch (error) {
-    console.error('Seller order notification email failed:', error)
-  }
+  // Email notifications disabled for now — Resend seller order emails coming soon.
+  // try {
+  //   await sendSellerOrderEmail(params, totalCents)
+  // } catch (error) {
+  //   console.error('Seller order notification email failed:', error)
+  // }
 
   try {
     await sendSellerOrderSms(params, totalCents)

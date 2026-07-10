@@ -40,7 +40,8 @@ export function NotificationEmailForm({
           className={inputClass}
         />
         <p className="text-stone-400 text-xs mt-2">
-          Order alerts are sent to this address.
+          Email notifications coming soon. Add your mobile number above to receive SMS
+          alerts.
         </p>
       </div>
 
