@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 
 type StripeConnectCardProps = {
   stripeConnectOnboarded: boolean
@@ -113,8 +114,9 @@ export function StripeConnectCard({
   return (
     <section className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
       <div>
-        <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+        <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide inline-flex items-center">
           Stripe payments
+          <InfoTooltip text="Connect your Stripe account to accept payments. Required before you can publish products." />
         </h2>
         <p className="text-stone-500 text-sm mt-1">
           Connect Stripe to accept payments on your shop.

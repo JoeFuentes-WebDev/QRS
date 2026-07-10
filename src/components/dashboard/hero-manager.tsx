@@ -7,6 +7,7 @@ import {
   moveHeroImage,
   removeHeroImage,
 } from '@/app/dashboard/hero/actions'
+import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 
 export type HeroImageItem = {
   id: string
@@ -139,8 +140,9 @@ export function HeroManager({ initialImages }: { initialImages: HeroImageItem[] 
     <section className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide inline-flex items-center">
             Shop hero images
+            <InfoTooltip text="These images rotate as the background of your storefront. Add at least one to make your shop visually compelling." />
           </h2>
           <p className="text-stone-500 text-sm mt-1">
             These rotate as the background on your storefront landing screen.

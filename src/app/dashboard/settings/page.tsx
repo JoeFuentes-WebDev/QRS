@@ -5,6 +5,7 @@ import { formatUsPhoneDisplay } from '@/lib/phone'
 import { getCurrentSeller } from '@/lib/seller'
 import { NotificationEmailForm } from '@/components/dashboard/notification-email-form'
 import { NotificationPhoneForm } from '@/components/dashboard/notification-phone-form'
+import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 
 export default async function SettingsPage() {
   const seller = await getCurrentSeller()
@@ -85,8 +86,9 @@ export default async function SettingsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+          <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide inline-flex items-center">
             Shipping
+            <InfoTooltip text="Shipping costs are included in your product prices. Set your prices to cover shipping." />
           </h2>
           <div className="bg-white rounded-2xl p-4 shadow-sm text-sm space-y-2">
             <p className="text-stone-900">

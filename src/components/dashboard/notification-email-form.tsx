@@ -5,6 +5,7 @@ import {
   updateNotificationEmail,
   type SettingsFormState,
 } from '@/app/dashboard/settings/actions'
+import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 
 const inputClass =
   'w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-stone-800 transition-colors'
@@ -23,8 +24,12 @@ export function NotificationEmailForm({
   return (
     <form action={formAction} className="space-y-3">
       <div>
-        <label htmlFor="notificationEmail" className={labelClass}>
+        <label
+          htmlFor="notificationEmail"
+          className={`${labelClass} inline-flex items-center`}
+        >
           Notification email
+          <InfoTooltip text="You'll receive order alerts at this address." />
         </label>
         <input
           id="notificationEmail"

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { savePostcardCta } from '@/app/dashboard/postcard/actions'
+import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 import {
   POSTCARD_DEFAULT_HERO,
   type PostcardOrientation,
@@ -110,8 +111,9 @@ export function PostcardDownload({
   return (
     <section className="bg-white rounded-2xl p-6 shadow-sm space-y-4">
       <div>
-        <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
+        <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide inline-flex items-center">
           Postcard
+          <InfoTooltip text="Download a print-ready QR code postcard to hand out at markets and events." />
         </h2>
         <p className="text-stone-500 text-sm mt-1">
           Download a print-ready PDF with your shop QR code.
