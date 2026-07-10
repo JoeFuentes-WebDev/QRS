@@ -79,5 +79,5 @@ export async function setTelegramWebhook(
     body: JSON.stringify({ url: webhookUrl }),
   })
   const data = await res.json()
-  console.log('Webhook set:', data)
+  // console.log('Webhook set:', data)
 }
