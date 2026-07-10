@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation'
 import { getShopUrlDisplay } from '@/lib/qr'
 import { formatUsPhoneDisplay } from '@/lib/phone'
 import { getCurrentSeller } from '@/lib/seller'
-import { NotificationEmailForm } from '@/components/dashboard/notification-email-form'
 import { NotificationPhoneForm } from '@/components/dashboard/notification-phone-form'
+// EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+// import { NotificationEmailForm } from '@/components/dashboard/notification-email-form'
 import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 
 export default async function SettingsPage() {
@@ -55,12 +56,14 @@ export default async function SettingsPage() {
             Notifications
           </h2>
           <div className="bg-white rounded-2xl p-4 shadow-sm space-y-6">
+            {/* EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
             <NotificationEmailForm defaultEmail={seller.notificationEmail} />
             <div className="border-t border-stone-100 pt-6">
+            */}
               <NotificationPhoneForm
                 defaultPhone={formatUsPhoneDisplay(seller.sellerPhone)}
               />
-            </div>
+            {/* </div> */}
           </div>
         </section>
 

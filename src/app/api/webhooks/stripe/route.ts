@@ -5,7 +5,8 @@ import {
   constructStripeWebhookEvent,
   getCheckoutSessionLineItems,
 } from '@/services/checkout.service'
-import { sendBuyerOrderConfirmation } from '@/services/email.service'
+// EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+// import { sendBuyerOrderConfirmation } from '@/services/email.service'
 import { notifySellerNewOrder } from '@/services/notification.service'
 import {
   createOrderFromCheckout,
@@ -68,16 +69,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       0
     )
 
-    void sendBuyerOrderConfirmation({
-      to: buyerEmail,
-      storeName: order.seller.storeName,
-      items: lineItems.map((line) => ({
-        name: line.name,
-        quantity: line.quantity,
-        unitPriceCents: line.unitAmountCents,
-      })),
-      totalCents,
-    })
+    // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+    // void sendBuyerOrderConfirmation({
+    //   to: buyerEmail,
+    //   storeName: order.seller.storeName,
+    //   items: lineItems.map((line) => ({
+    //     name: line.name,
+    //     quantity: line.quantity,
+    //     unitPriceCents: line.unitAmountCents,
+    //   })),
+    //   totalCents,
+    // })
 
     void notifySellerNewOrder({
       order,

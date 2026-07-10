@@ -72,6 +72,9 @@ async function sendSellerOrderEmail(
   params: NotifySellerNewOrderParams,
   totalCents: number
 ): Promise<void> {
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  return
+  /*
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey?.trim()) {
     return
@@ -119,6 +122,7 @@ async function sendSellerOrderEmail(
       </div>
     `,
   })
+  */
 }
 
 async function sendSellerOrderSms(
@@ -176,7 +180,7 @@ export async function notifySellerNewOrder(
 ): Promise<void> {
   const totalCents = computeOrderTotalCents(params.order.items)
 
-  // Email notifications disabled for now — Resend seller order emails coming soon.
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
   // try {
   //   await sendSellerOrderEmail(params, totalCents)
   // } catch (error) {

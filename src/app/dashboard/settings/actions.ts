@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { isValidUsPhone, normalizeUsPhone } from '@/lib/phone'
 import { getCurrentSeller } from '@/lib/seller'
 import {
-  updateSellerNotificationEmail,
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  // updateSellerNotificationEmail,
   updateSellerPhone as updateSellerPhoneRecord,
 } from '@/services/seller.service'
 
@@ -13,12 +14,15 @@ export type SettingsFormState = {
   success?: boolean
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function updateNotificationEmail(
   _prev: SettingsFormState,
-  formData: FormData
+  _formData: FormData
 ): Promise<SettingsFormState> {
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  return { error: 'Email notifications are not available yet.' }
+  /*
   const seller = await getCurrentSeller()
   if (!seller) {
     return { error: 'You must be signed in.' }
@@ -35,6 +39,7 @@ export async function updateNotificationEmail(
   await updateSellerNotificationEmail(seller.id, notificationEmail)
   revalidatePath('/dashboard/settings')
   return { success: true }
+  */
 }
 
 export async function updateSellerPhone(

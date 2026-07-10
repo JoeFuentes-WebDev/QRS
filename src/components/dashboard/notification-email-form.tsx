@@ -1,5 +1,7 @@
 'use client'
 
+// EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+/*
 import { useActionState } from 'react'
 import {
   updateNotificationEmail,
@@ -10,12 +12,15 @@ import { InfoTooltip } from '@/components/dashboard/info-tooltip'
 const inputClass =
   'w-full border-2 border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-stone-800 transition-colors'
 const labelClass = 'block text-sm font-medium text-stone-700 mb-1'
+*/
 
 export function NotificationEmailForm({
-  defaultEmail,
+  defaultEmail: _defaultEmail,
 }: {
   defaultEmail: string
 }) {
+  return null
+  /*
   const [state, formAction, pending] = useActionState<
     SettingsFormState,
     FormData
@@ -65,4 +70,5 @@ export function NotificationEmailForm({
       </button>
     </form>
   )
+  */
 }

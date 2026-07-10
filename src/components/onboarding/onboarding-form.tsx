@@ -105,6 +105,7 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
           )}
         </div>
 
+        {/* EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
         <div>
           <label htmlFor="notificationEmail" className={labelClass}>
             Notification email
@@ -124,6 +125,7 @@ export function OnboardingForm({ defaultEmail }: { defaultEmail: string }) {
             <p className="text-red-400 text-sm mt-1">{fieldError('notificationEmail')}</p>
           )}
         </div>
+        */}
 
         <div>
           <label htmlFor="sellerPhone" className={labelClass}>

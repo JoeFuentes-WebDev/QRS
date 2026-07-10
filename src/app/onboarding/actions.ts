@@ -40,7 +40,8 @@ export async function createSeller(
 
   const storeName = (formData.get('storeName') as string)?.trim()
   const slug = (formData.get('slug') as string)?.trim()
-  const notificationEmail = (formData.get('notificationEmail') as string)?.trim()
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  // const notificationEmail = (formData.get('notificationEmail') as string)?.trim()
   const rawPhone = (formData.get('sellerPhone') as string)?.trim() ?? ''
 
   const fieldErrors: Record<string, string> = {}
@@ -48,11 +49,12 @@ export async function createSeller(
   if (!storeName) fieldErrors.storeName = 'Store name is required.'
   if (!slug) fieldErrors.slug = 'Slug is required.'
   else if (!isValidSlug(slug)) fieldErrors.slug = 'Invalid slug format.'
-  if (!notificationEmail) {
-    fieldErrors.notificationEmail = 'Notification email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)) {
-    fieldErrors.notificationEmail = 'Enter a valid email address.'
-  }
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  // if (!notificationEmail) {
+  //   fieldErrors.notificationEmail = 'Notification email is required.'
+  // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)) {
+  //   fieldErrors.notificationEmail = 'Enter a valid email address.'
+  // }
   if (!isValidUsPhone(rawPhone)) {
     fieldErrors.sellerPhone = 'Enter a valid US phone number, e.g. (555) 555-5555.'
   }
@@ -76,7 +78,9 @@ export async function createSeller(
       clerkUserId: userId,
       storeName,
       slug,
-      notificationEmail,
+      // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+      // notificationEmail,
+      notificationEmail: clerkEmail,
       sellerPhone: normalizeUsPhone(rawPhone),
     },
   })

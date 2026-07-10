@@ -27,6 +27,9 @@ export async function sendBuyerOrderConfirmation(params: {
   items: OrderEmailItem[]
   totalCents: number
 }): Promise<void> {
+  // EMAIL NOTIFICATIONS DISABLED — re-enable when Resend custom domain is configured
+  return
+  /*
   try {
     const from = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
     const resend = getResend()
@@ -68,4 +71,5 @@ export async function sendBuyerOrderConfirmation(params: {
   } catch (error) {
     console.error('Buyer order confirmation email failed:', error)
   }
+  */
 }
