@@ -1,5 +1,9 @@
 import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
+import {
+  LandingPageTracker,
+  TrackedCtaLink,
+} from '@/components/analytics/landing-analytics'
 import { faqItems } from '@/lib/faq-data'
 
 export const metadata = {
@@ -37,6 +41,7 @@ export default function LandingPage() {
 
   return (
     <>
+      <LandingPageTracker />
       {/* ─── Nav ─── */}
       <nav className="sticky top-0 z-50 bg-[#FFFAF7]/90 backdrop-blur-md border-b border-orange-100">
         <div className="max-w-6xl mx-auto px-6 h-[60px] flex items-center justify-between">
@@ -56,12 +61,13 @@ export default function LandingPage() {
             >
               Sign in
             </Link>
-            <Link
+            <TrackedCtaLink
               href="/sign-up"
+              ctaLabel="Create your store"
               className="text-sm font-bold text-white bg-[#FF6B35] px-4 py-2 rounded-full hover:bg-[#E0501A] transition-colors shadow-sm"
             >
               Create your store
-            </Link>
+            </TrackedCtaLink>
           </div>
         </div>
       </nav>
@@ -88,15 +94,16 @@ export default function LandingPage() {
 
           {/* CTAs */}
           <div className="flex flex-wrap items-center gap-3 mb-6">
-            <Link
+            <TrackedCtaLink
               href="/sign-up"
+              ctaLabel="Set up in 5 minutes"
               className="inline-flex items-center gap-2 text-base font-bold text-white bg-[#FF6B35] px-7 py-3.5 rounded-full hover:bg-[#E0501A] transition-colors shadow-[0_4px_16px_rgba(255,107,53,0.3)] hover:shadow-[0_8px_24px_rgba(255,107,53,0.4)] hover:-translate-y-0.5 transform"
             >
               Set up in 5 minutes
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </Link>
+            </TrackedCtaLink>
             <Link
               href="/sign-in"
               className="inline-flex items-center text-base font-bold text-[#1A1A1A] px-7 py-3.5 rounded-full border-2 border-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-colors hover:-translate-y-0.5 transform"
@@ -223,15 +230,16 @@ export default function LandingPage() {
         <p className="text-lg text-white/50 leading-relaxed max-w-md mx-auto mb-10">
           Join makers, market sellers, and small vendors already using QRS to sell without the overhead.
         </p>
-        <Link
+        <TrackedCtaLink
           href="/sign-up"
+          ctaLabel="Create your free store"
           className="inline-flex items-center gap-2 text-lg font-bold text-white bg-[#FF6B35] px-9 py-4 rounded-full hover:bg-[#E0501A] transition-colors shadow-[0_4px_16px_rgba(255,107,53,0.3)]"
         >
           Create your free store
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </Link>
+        </TrackedCtaLink>
         <p className="mt-4 text-sm text-white/35">
           Already have a store?{' '}
           <Link href="/sign-in" className="text-white/60 underline underline-offset-2 hover:text-white transition-colors">

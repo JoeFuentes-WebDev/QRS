@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRef, useState } from 'react'
+import { PageViewTracker } from '@/components/analytics/page-view-tracker'
 
 const steps = [
   {
@@ -54,6 +55,7 @@ export default function HowItWorksPage() {
 
   return (
     <>
+      <PageViewTracker event="howitworks.viewed" includeUtm />
       {/* ─── Nav ─── */}
       <nav className="sticky top-0 z-50 bg-[#FFFAF7]/90 backdrop-blur-md border-b border-orange-100">
         <div className="max-w-6xl mx-auto px-6 h-[60px] flex items-center justify-between">

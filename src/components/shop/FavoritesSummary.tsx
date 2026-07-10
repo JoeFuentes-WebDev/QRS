@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import type { FavoriteItem, Product } from '@/types'
 import { formatPrice } from '@/lib/pricing'
+import { dotellClient } from '@/lib/dotell-client'
 
 type Props = {
   slug: string
@@ -33,6 +34,13 @@ export function FavoritesSummary({
 
   const handleCheckout = async () => {
     if (!paymentsEnabled) return
+
+    void dotellClient.track('checkout.started', {
+      slug,
+      sellerId,
+      itemCount: cartItems.length,
+      total: cartTotal,
+    })
 
     setLoading(true)
     setCheckoutError(null)

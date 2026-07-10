@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackSellerEvent } from '@/services/analytics.service'
 import {
   CheckoutValidationError,
   createCheckoutSession,
 } from '@/services/checkout.service'
+import { getSellerById } from '@/services/seller.service'
 
 type CheckoutSessionBody = {
   sellerId?: string
@@ -41,6 +43,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (error instanceof CheckoutValidationError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
+
+    const seller = await getSellerById(sellerId)
+    if (seller) {
+      void trackSellerEvent(seller.clerkUserId, 'checkout.failed', {
+        sellerId: seller.clerkUserId,
+        error: error instanceof Error ? error.message : 'unknown',
+      })
+    }
+
     console.error('Checkout session error:', error)
     return NextResponse.json({ error: 'Checkout failed' }, { status: 500 })
   }

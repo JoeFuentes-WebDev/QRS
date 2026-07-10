@@ -4,11 +4,18 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import type { Product, FavoriteItem } from '@/types'
 import { formatPrice } from '@/lib/pricing'
+import {
+  dotellClient,
+  hasViewedProductThisSession,
+  markProductViewedThisSession,
+} from '@/lib/dotell-client'
 
 const SKIP_HINT_KEY = 'qrs_skip_hint_shown'
 
 type Props = {
   product: Product
+  slug: string
+  sellerId: string
   onSwipeRight: (item: FavoriteItem) => void
   onSwipeLeft: () => void
   onPin: (item: FavoriteItem) => void
@@ -23,6 +30,8 @@ function stopPointer(e: React.MouseEvent | React.TouchEvent) {
 
 export function SwipeCard({
   product,
+  slug,
+  sellerId,
   onSwipeRight,
   onSwipeLeft,
   onPin,
@@ -33,7 +42,42 @@ export function SwipeCard({
   const [showSkipHint, setShowSkipHint] = useState(false)
   const detailRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const pointerTarget = useRef<EventTarget | null>(null)
+
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (!entry?.isIntersecting || entry.intersectionRatio < 0.5) return
+        if (hasViewedProductThisSession(product.id)) return
+
+        markProductViewedThisSession(product.id)
+        void dotellClient.track('product.viewed', {
+          productId: product.id,
+          slug,
+          sellerId,
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    observer.observe(card)
+    return () => observer.disconnect()
+  }, [product.id, slug, sellerId])
+
+  useEffect(() => {
+    if (!expanded) return
+
+    void dotellClient.track('product.details_viewed', {
+      productId: product.id,
+      slug,
+      sellerId,
+    })
+  }, [expanded, product.id, slug, sellerId])
 
   useEffect(() => {
     if (expanded && detailRef.current) {
@@ -128,6 +172,7 @@ export function SwipeCard({
 
   return (
     <div
+      ref={cardRef}
       className="relative select-none touch-none w-full"
       style={{
         transform: `translateX(${dragX}px) translateY(${Math.min(0, dragY)}px) rotate(${rotation}deg)`,

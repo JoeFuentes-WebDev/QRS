@@ -5,6 +5,7 @@ import {
   parsePostcardOrientation,
   resolvePostcardHeroImageUrl,
 } from '@/lib/postcard-pdf'
+import { trackSellerEvent } from '@/services/analytics.service'
 import { sellerOwnsHeroImageUrl } from '@/services/hero.service'
 import { getSellerByClerkId } from '@/services/seller.service'
 
@@ -55,6 +56,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       imageUrl: resolvedImageUrl,
       postcardCta: seller.postcardCta,
       orientation,
+    })
+
+    void trackSellerEvent(seller.clerkUserId, 'postcard.downloaded', {
+      sellerId: seller.clerkUserId,
+      slug: seller.slug,
     })
 
     return new NextResponse(new Uint8Array(pdf), {

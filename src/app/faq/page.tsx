@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { faqItems } from '@/lib/faq-data'
+import { PageViewTracker } from '@/components/analytics/page-view-tracker'
 
 export const metadata = {
   title: 'FAQ — QRS',
@@ -9,6 +10,7 @@ export const metadata = {
 export default function FaqPage() {
   return (
     <main className="min-h-screen bg-stone-50 px-6 py-12">
+      <PageViewTracker event="faq.viewed" />
       <div className="max-w-2xl mx-auto">
         <div className="mb-10">
           <Link href="/" className="text-sm text-stone-500 hover:text-stone-800">

@@ -32,8 +32,9 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
-async function generateAcquisitionQrDataUri(): Promise<string> {
-  return QRCode.toDataURL(ACQUISITION_URL, {
+async function generateAcquisitionQrDataUri(utmSource: string): Promise<string> {
+  const acquisitionUrl = `https://my-qrs.co?utm_source=${encodeURIComponent(utmSource)}`
+  return QRCode.toDataURL(acquisitionUrl, {
     width: 512,
     margin: 1,
     errorCorrectionLevel: 'M',
@@ -249,8 +250,11 @@ async function resolveExecutablePath(): Promise<string> {
   return chromium.executablePath()
 }
 
-export async function generateSellerAcquisitionPostcardPdf(): Promise<Buffer> {
-  const qrDataUri = await generateAcquisitionQrDataUri()
+export async function generateSellerAcquisitionPostcardPdf(params?: {
+  utmSource?: string
+}): Promise<Buffer> {
+  const utmSource = params?.utmSource?.trim() || 'organic'
+  const qrDataUri = await generateAcquisitionQrDataUri(utmSource)
   const html = buildSellerAcquisitionPostcardHtml(qrDataUri)
 
   const browser = await puppeteer.launch({

@@ -7,6 +7,12 @@ import { OnboardingScreen, useOnboarding } from '@/components/shop/Onboardingscr
 import { FavoritesSummary } from '@/components/shop/FavoritesSummary'
 import { HeroBackground, type StorefrontHeroImage } from '@/components/shop/hero-background'
 import { loadCart, saveCart, clearCart } from '@/lib/shop-cart'
+import {
+  dotellClient,
+  getOrCreateAnonymousId,
+  markSlugVisited,
+  readVisitedSlugs,
+} from '@/lib/dotell-client'
 import type { Product, FavoriteItem } from '@/types'
 
 type Phase = 'prompt' | 'swipe' | 'summary'
@@ -134,6 +140,24 @@ export function ShopExperience({
   }, [slug, favorites])
 
   useEffect(() => {
+    try {
+      const visitedSlugs = readVisitedSlugs()
+      const isReturn = visitedSlugs.includes(slug)
+
+      dotellClient.identify(getOrCreateAnonymousId())
+
+      if (isReturn) {
+        void dotellClient.track('storefront.returned', { slug, sellerId })
+      } else {
+        void dotellClient.track('storefront.viewed', { slug, sellerId })
+        markSlugVisited(slug)
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, [slug, sellerId])
+
+  useEffect(() => {
     fetch(`/api/categories?slug=${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((data) => {
@@ -192,6 +216,12 @@ export function ShopExperience({
 
   const handleSwipeRight = useCallback(
     (item: FavoriteItem) => {
+      void dotellClient.track('cart.item_added', {
+        productId: item.product.id,
+        price: item.product.price,
+        slug,
+        sellerId,
+      })
       setFavorites((prev) => {
         const exists = prev.find((f) => f.product.id === item.product.id)
         if (exists) {
@@ -203,11 +233,16 @@ export function ShopExperience({
       })
       advanceCard()
     },
-    [advanceCard]
+    [advanceCard, slug, sellerId]
   )
 
   const handlePin = useCallback(
     (item: FavoriteItem) => {
+      void dotellClient.track('product.saved', {
+        productId: item.product.id,
+        slug,
+        sellerId,
+      })
       setFavorites((prev) => {
         const exists = prev.find((f) => f.product.id === item.product.id)
         if (exists) return prev
@@ -215,10 +250,17 @@ export function ShopExperience({
       })
       advanceCard()
     },
-    [advanceCard]
+    [advanceCard, slug, sellerId]
   )
 
   const handleSkip = useCallback(() => {
+    if (currentProduct) {
+      void dotellClient.track('product.skipped', {
+        productId: currentProduct.id,
+        slug,
+        sellerId,
+      })
+    }
     if (reviewProduct) {
       setReviewProduct(null)
       setPhase('summary')
@@ -227,7 +269,7 @@ export function ShopExperience({
     if (!currentProduct) return
     setQueue((q) => [...q, q[currentIndex]])
     advanceCard()
-  }, [currentProduct, currentIndex, advanceCard, reviewProduct])
+  }, [currentProduct, currentIndex, advanceCard, reviewProduct, slug, sellerId])
 
   const handleReviewSaved = useCallback((product: Product) => {
     setReviewProduct(product)
@@ -411,6 +453,8 @@ export function ShopExperience({
             <HeroBackground images={heroImages} />
             <SwipeCard
               product={currentProduct}
+              slug={slug}
+              sellerId={sellerId}
               onSwipeRight={handleSwipeRight}
               onSwipeLeft={handleSkip}
               onPin={handlePin}

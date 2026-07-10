@@ -92,7 +92,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     void trackSellerEvent(order.seller.clerkUserId, 'order.placed', {
       orderId: order.id,
       sellerId: order.seller.clerkUserId,
-    })
+      total: order.items.reduce(
+        (sum, item) => sum + item.priceSnapshot * item.quantity,
+        0
+      ),
+      itemCount: order.items.length,
+      items: order.items.map((item) => ({
+        productId: item.productId,
+        name: item.product.name,
+        price: item.priceSnapshot,
+        quantity: item.quantity,
+      })),
+    } as unknown as Parameters<typeof trackSellerEvent>[2])
   } catch (error) {
     console.error('Order processing error:', error)
     return NextResponse.json({ error: 'Order processing failed' }, { status: 500 })

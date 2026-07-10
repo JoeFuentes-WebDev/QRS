@@ -144,6 +144,12 @@ export async function createProduct(
   })
 
   trackPublishIfNeeded(seller.clerkUserId, product.id, false, product.published)
+  void trackSellerEvent(seller.clerkUserId, 'product.added', {
+    sellerId: seller.clerkUserId,
+    productId: product.id,
+    category: validated.data.category,
+    price: validated.data.price,
+  })
   revalidateProductPaths(product.id)
 
   return {
@@ -183,6 +189,10 @@ export async function updateProduct(
     existing.published,
     product.published
   )
+  void trackSellerEvent(seller.clerkUserId, 'product.edited', {
+    sellerId: seller.clerkUserId,
+    productId: product.id,
+  })
   revalidateProductPaths(product.id)
 
   return { data: { published: product.published } }
@@ -196,6 +206,10 @@ export async function deleteProduct(productId: string): Promise<ActionResult> {
   const deleted = await deleteProductRecord(productId, seller.id)
   if (!deleted) return { error: 'Product not found.' }
 
+  void trackSellerEvent(seller.clerkUserId, 'product.deleted', {
+    sellerId: seller.clerkUserId,
+    productId,
+  })
   revalidateProductPaths(productId)
   return {}
 }
@@ -225,6 +239,12 @@ export async function togglePublish(productId: string): Promise<ActionResult<{ p
     result.previousPublished,
     result.product.published
   )
+  if (!nextPublished) {
+    void trackSellerEvent(seller.clerkUserId, 'product.unpublished', {
+      sellerId: seller.clerkUserId,
+      productId,
+    })
+  }
   revalidateProductPaths(productId)
 
   return { data: { published: result.product.published } }
