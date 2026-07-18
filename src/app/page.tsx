@@ -41,14 +41,14 @@ export const metadata: Metadata = {
 const trustItems = [
   'No monthly fee',
   'Works in-person & online',
-  'Keep 98.5% of every sale',
+  'Keep 98% of every sale',
 ]
 
 const steps = [
   {
     num: 'Step 1',
     title: 'Create your store',
-    body: 'Sign up, name your store, upload your products with photos and prices. Takes about a minute.',
+    body: 'Sign up, name your store, upload your products with photos and prices. Takes about 5 minutes.',
   },
   {
     num: 'Step 2',
@@ -58,7 +58,7 @@ const steps = [
   {
     num: 'Step 3',
     title: 'Start getting paid',
-    body: 'Customers scan, browse, and buy. You get paid via Stripe. Orders come straight to your phone via Telegram.',
+    body: 'Customers scan, browse, and buy. You get paid via Stripe. Orders come straight to your phone Text Message.',
   },
 ]
 
