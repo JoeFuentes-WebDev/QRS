@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import HeroCarousel from '@/components/HeroCarousel'
 import {
@@ -6,10 +7,35 @@ import {
 } from '@/components/analytics/landing-analytics'
 import { faqItems } from '@/lib/faq-data'
 
-export const metadata = {
-  title: 'QRS — One link. One QR code. Your whole store.',
+export const metadata: Metadata = {
+  title: {
+    absolute: 'my-qrs.co — Your whole store. One QR code.',
+  },
   description:
-    'QRS gives makers and market sellers a storefront that works in person and online. No monthly fee.',
+    'Set up an online storefront in 5 minutes. Take a photo, set a price, get a QR code postcard. Built for craft fair vendors, artisan makers, and local sellers.',
+  openGraph: {
+    title: 'my-qrs.co — Your whole store. One QR code.',
+    description:
+      'Set up an online storefront in 5 minutes. Built for craft fair vendors, artisan makers, and local sellers.',
+    url: 'https://my-qrs.co',
+    siteName: 'my-qrs.co',
+    images: [
+      {
+        url: 'https://my-qrs.co/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: 'my-qrs.co — Your whole store. One QR code.',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'my-qrs.co — Your whole store. One QR code.',
+    description:
+      'Set up an online storefront in 5 minutes. Built for craft fair vendors and local sellers.',
+    images: ['https://my-qrs.co/og-default.png'],
+  },
 }
 
 const trustItems = [

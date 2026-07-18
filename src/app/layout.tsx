@@ -9,8 +9,13 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "QRS",
-  description: "Multi-tenant storefront platform",
+  title: {
+    default: 'my-qrs.co',
+    template: '%s — my-qrs.co',
+  },
+  description:
+    'Your whole store. One QR code. Built for craft fair vendors and local sellers.',
+  metadataBase: new URL('https://my-qrs.co'),
 };
 
 export default function RootLayout({

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
@@ -8,6 +9,56 @@ import { listHeroImagesForSeller } from '@/services/hero.service'
 
 type Props = {
   params: Promise<{ slug: string }>
+}
+
+const DEFAULT_OG_IMAGE = 'https://my-qrs.co/og-default.png'
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+
+  const seller = await prisma.seller.findUnique({
+    where: { slug },
+    include: { heroImages: { orderBy: { order: 'asc' }, take: 1 } },
+  })
+
+  if (!seller) {
+    return {
+      title: {
+        absolute: 'Store not found — my-qrs.co',
+      },
+    }
+  }
+
+  const heroImageUrl = seller.heroImages[0]?.url ?? DEFAULT_OG_IMAGE
+  const storeUrl = `https://my-qrs.co/${seller.slug}`
+
+  return {
+    title: {
+      absolute: `${seller.storeName} — Shop on my-qrs.co`,
+    },
+    description: `Browse and buy from ${seller.storeName}. Scan the QR code or visit ${storeUrl} to shop.`,
+    openGraph: {
+      title: seller.storeName,
+      description: `Browse and buy from ${seller.storeName} on my-qrs.co.`,
+      url: storeUrl,
+      siteName: 'my-qrs.co',
+      images: [
+        {
+          url: heroImageUrl,
+          width: 1200,
+          height: 630,
+          alt: seller.storeName,
+        },
+      ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seller.storeName,
+      description: `Browse and buy from ${seller.storeName} on my-qrs.co.`,
+      images: [heroImageUrl],
+    },
+  }
 }
 
 export default async function ShopPage({ params }: Props) {

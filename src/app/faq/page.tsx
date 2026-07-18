@@ -1,10 +1,22 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { faqItems } from '@/lib/faq-data'
 import { PageViewTracker } from '@/components/analytics/page-view-tracker'
 
-export const metadata = {
-  title: 'FAQ — QRS',
-  description: 'Frequently asked questions about QRS storefronts for market sellers.',
+export const metadata: Metadata = {
+  title: {
+    absolute: 'FAQ — my-qrs.co',
+  },
+  description:
+    'Frequently asked questions about my-qrs.co — how it works, pricing, payments, shipping, and more.',
+  openGraph: {
+    title: 'FAQ — my-qrs.co',
+    description: 'Everything you need to know about selling on my-qrs.co.',
+    url: 'https://my-qrs.co/faq',
+    siteName: 'my-qrs.co',
+    images: [{ url: 'https://my-qrs.co/og-default.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
 }
 
 export default function FaqPage() {
