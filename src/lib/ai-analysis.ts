@@ -44,7 +44,7 @@ async function analyzeProductImageCore(
   mediaType: string
 ): Promise<ImageAnalysis | null> {
   const response = await client.messages.create({
-    model: 'claude-opus-4-6',
+    model: 'claude-sonnet-5-5',
     max_tokens: 500,
     messages: [
       {
@@ -77,7 +77,8 @@ async function analyzeProductImageCore(
       ...tagFields,
       suggestedPrice: parsed.suggestedPrice ?? suggestedPriceFromCount(parsed.pieceCount ?? 1),
     }
-  } catch {
+  } catch (error) {
+    console.error('[ai-analysis] failed:', error)
     return null
   }
 }
@@ -146,6 +147,7 @@ export async function analyzeProductFromImageUrl(
       tags,
     }
   } catch (error) {
+    console.error('[ai-analysis] failed:', error)
     console.warn('[ai-analysis] analyzeProductFromImageUrl failed:', error)
     return null
   }
@@ -194,7 +196,7 @@ export async function generateProductTags(input: {
     const mediaType = imageRes.headers.get('content-type') || 'image/jpeg'
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-5-5',
       max_tokens: 300,
       messages: [
         {
@@ -240,6 +242,7 @@ Use 3–6 lowercase descriptive tags.`,
       tags: tags.length > 0 ? tags : [...AI_TAG_STUB.tags],
     }
   } catch (error) {
+    console.error('[ai-analysis] failed:', error)
     console.warn('[ai-analysis] generateProductTags failed:', error)
     return { tags: [...AI_TAG_STUB.tags], category: AI_TAG_STUB.category }
   }
