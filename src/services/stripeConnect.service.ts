@@ -47,9 +47,9 @@ export async function getOrCreateConnectAccount(
       name: seller.storeName,
       url: `${appUrl}/${seller.slug}`,
     },
-    individual: {
-      email,
-    },
+    // individual: {
+    //   email,
+    // },
     capabilities: {
       card_payments: { requested: true },
       transfers: { requested: true },
