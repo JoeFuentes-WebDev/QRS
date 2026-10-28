@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getSellerBySlug } from '@/lib/seller'
 import { CheckoutCompletedTracker } from '@/components/analytics/checkout-completed-tracker'
+import { ClearPurchasedCart } from '@/components/shop/clear-purchased-cart'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -22,6 +23,7 @@ export default async function SuccessPage({ params, searchParams }: Props) {
         sellerId={seller.id}
         sessionId={sessionId}
       />
+      <ClearPurchasedCart slug={slug} sessionId={sessionId} />
       <div className="text-center max-w-sm w-full">
         <p className="text-6xl mb-6">✓</p>
         <h1 className="text-3xl font-black text-stone-900 mb-3">Order received</h1>
